@@ -155,15 +155,113 @@
 		selectedMenuItem = `${action} on ${node.data.name}`;
 	}
 
+	// Perform async action helper with duration tracking
+	function performAsyncAction(action: string, node: any, duration?: number, error?: string) {
+		const timestamp = new Date().toLocaleTimeString();
+		const newAction = {
+			id: Date.now(),
+			action,
+			item: node.data.name,
+			timestamp,
+			icon: getActionIcon(action),
+			duration,
+			error
+		};
+
+		actionHistory = [newAction, ...actionHistory.slice(0, 9)];
+		console.log(`${action} performed on: ${node.data.name}${duration ? ` in ${duration}ms` : ''}${error ? ` with error: ${error}` : ''}`);
+		selectedMenuItem = `${action} on ${node.data.name}${error ? ' (ERROR)' : ''}`;
+	}
+
 	function getActionIcon(action: string): string {
 		const icons = {
 			watch: '▶️', toggleWatchlist: '❤️', recommend: '🎆', copyLink: '📋',
 			download: '📱', browse: '📂', premiumCollections: '🌟', notifications: '🔔',
 			toggleFollow: '★', biography: '📄', viewAllMovies: '🎥', properties: '🔧',
-			play: '▶️', info: 'ℹ️', favorite: '❤️'
+			play: '▶️', info: 'ℹ️', favorite: '❤️', 'copy-link': '📋', 'create-folder': '📁',
+			'create-folder-error': '❌', backup: '💾'
 		};
 		return icons[action] || '⚙️';
 	}
+
+	// Async context menu callback for demonstration (NEW in v4.3.1)
+	const createAsyncMovieContextMenu = (node: any, closeMenuCallback: () => void): ContextMenuItem[] => {
+		return [
+			{
+				icon: '📋',
+				title: 'Copy Movie Link (Async)',
+				callback: async () => {
+					console.log('Starting async copy operation...');
+
+					// Simulate network delay
+					await new Promise(resolve => setTimeout(resolve, 1000));
+
+					// Simulate copy operation
+					try {
+						await navigator.clipboard?.writeText(`https://movies.app/watch/${node.data.id}`);
+						console.log('Copy operation completed successfully');
+						performAsyncAction('copy-link', node, 1000);
+						closeMenuCallback(); // Close menu after successful operation
+					} catch (error) {
+						console.error('Copy failed:', error);
+						performAsyncAction('copy-link', node, 1000, 'Clipboard access denied');
+						// Don't close menu on error - allow user to retry
+					}
+				}
+			},
+			{
+				icon: '📁',
+				title: 'Create New Folder (20% Error Rate)',
+				callback: async () => {
+					console.log('Starting folder creation...');
+
+					const startTime = Date.now();
+
+					try {
+						// Simulate async operation with potential failure
+						await new Promise((resolve, reject) => {
+							setTimeout(() => {
+								if (Math.random() < 0.2) {
+									reject(new Error('Network timeout'));
+								} else {
+									resolve(null);
+								}
+							}, 800);
+						});
+
+						const duration = Date.now() - startTime;
+						performAsyncAction('create-folder', node, duration);
+						closeMenuCallback(); // Close menu after successful operation
+
+					} catch (error: any) {
+						// Error automatically caught and logged by tree component
+						const duration = Date.now() - startTime;
+						performAsyncAction('create-folder-error', node, duration, error.message);
+						// Keep menu open on error for user to retry or try other actions
+					}
+				}
+			},
+			{ isDivider: true },
+			{
+				icon: '💾',
+				title: 'Database Backup (Long Operation)',
+				callback: async () => {
+					console.log('Starting database backup...');
+
+					const startTime = Date.now();
+
+					// Simulate long-running operation
+					await new Promise(resolve => setTimeout(resolve, 2500));
+
+					const duration = Date.now() - startTime;
+					performAsyncAction('backup', node, duration);
+					closeMenuCallback(); // Close menu after successful completion
+
+					console.log('Database backup completed');
+				}
+			}
+		];
+	};
 
 	// Helper function to get level from path
 	const getLevel = (path: string) => path.split('.').length;
@@ -498,6 +596,200 @@ const createMovieContextMenu = (node): ContextMenuItem[] => {
 						<li>Use semantic HTML for accessibility</li>
 						<li>Apply consistent CSS classes</li>
 						<li>Handle disabled states properly</li>
+					</ul>
+				</div>
+			{/snippet}
+		</ShowcaseSection>
+
+		<!-- Async Callback Support -->
+		<ShowcaseSection
+			titleText="⏳ Async Callback Support (NEW)"
+			subtitleText="Context menu callbacks now support async operations with automatic error handling"
+			demoColumnTitle="Async Operations Demo"
+			controlsColumnTitle="Async Examples"
+			descriptionColumnTitle="Async Features">
+
+			{#snippet demoContent()}
+				<div class="tree-demo-context-menu">
+					<div class="alert alert-success mb-3">
+						<strong>🆕 New in v4.3.1 (2025-09-25):</strong> Async callback support with automatic error handling and operation tracking
+					</div>
+					<Tree
+						treeId="context-menu-async"
+						data={movieData.slice(0, 6)}
+						idMember="id"
+						pathMember="path"
+						displayValueMember="name"
+						{sortCallback}
+						expandLevel={2}
+						shouldToggleOnNodeClick={true}
+						contextMenuCallback={createAsyncMovieContextMenu}
+						contextMenuXOffset={8}
+						contextMenuYOffset={0}
+					/>
+
+					<div class="mt-3">
+						<h6>Async Operation Log</h6>
+						{#if selectedMenuItem}
+							<div class="alert alert-success py-2 mb-3">
+								Last: {selectedMenuItem}
+							</div>
+						{/if}
+
+						<div class="action-history" style="max-height: 300px; overflow-y: auto;">
+							{#if actionHistory.length > 0}
+								{#each actionHistory as action}
+									<div class="d-flex align-items-center gap-2 p-2 border-bottom">
+										<span class="fs-5">{action.icon}</span>
+										<div class="flex-grow-1">
+											<div class="small fw-bold">{action.action}</div>
+											<div class="small text-muted">{action.item}</div>
+											{#if action.duration}
+												<div class="small text-success">Completed in {action.duration}ms</div>
+											{/if}
+											{#if action.error}
+												<div class="small text-danger">Error: {action.error}</div>
+											{/if}
+										</div>
+										<small class="text-muted">{action.timestamp}</small>
+									</div>
+								{/each}
+							{:else}
+								<div class="text-muted">Right-click items to see async operations here</div>
+							{/if}
+						</div>
+					</div>
+				</div>
+			{/snippet}
+
+			{#snippet controlsContent()}
+				<div class="tree-controls">
+					<CodeBlock
+						codeContent={`// Async callback with error handling (NEW in v4.3.1)
+const createAsyncMovieContextMenu = (node, closeMenuCallback): ContextMenuItem[] => {
+  return [
+    {
+      icon: '📋',
+      title: 'Copy Movie Link (Async)',
+      callback: async () => {
+        console.log('Starting async copy operation...');
+
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        try {
+          // Simulate copy operation
+          await navigator.clipboard?.writeText(
+            \`https://movies.app/watch/\${node.data.id}\`
+          );
+
+          console.log('Copy operation completed successfully');
+          performAsyncAction('copy-link', node, 1000);
+          closeMenuCallback(); // Close menu after successful operation
+        } catch (error) {
+          console.error('Copy failed:', error);
+          performAsyncAction('copy-link', node, 1000, 'Clipboard access denied');
+          // Don't close menu on error - allow user to retry
+        }
+      }
+    },
+    {
+      icon: '📁',
+      title: 'Create New Folder (20% Error Rate)',
+      callback: async () => {
+        console.log('Starting folder creation...');
+        const startTime = Date.now();
+
+        try {
+          // Simulate async operation with potential failure
+          await new Promise((resolve, reject) => {
+            setTimeout(() => {
+              if (Math.random() < 0.2) {
+                reject(new Error('Network timeout'));
+              } else {
+                resolve(null);
+              }
+            }, 800);
+          });
+
+          const duration = Date.now() - startTime;
+          performAsyncAction('create-folder', node, duration);
+          closeMenuCallback(); // Close menu after successful operation
+
+        } catch (error) {
+          // Error automatically caught and logged by tree component
+          const duration = Date.now() - startTime;
+          performAsyncAction('create-folder-error', node, duration, error.message);
+          // Keep menu open on error for user to retry or try other actions
+        }
+      }
+    },
+    { isDivider: true },
+    {
+      icon: '💾',
+      title: 'Database Backup (Long Operation)',
+      callback: async () => {
+        console.log('Starting database backup...');
+        const startTime = Date.now();
+
+        // Simulate long-running operation
+        await new Promise(resolve => setTimeout(resolve, 2500));
+
+        const duration = Date.now() - startTime;
+        performAsyncAction('backup', node, duration);
+        closeMenuCallback(); // Close menu after successful completion
+
+        console.log('Database backup completed');
+      }
+    }
+  ];
+};`}
+						languageType="javascript"
+						titleText="Async Callback Examples"
+					/>
+				</div>
+			{/snippet}
+
+			{#snippet descriptionContent()}
+				<div class="prose">
+					<h4>🆕 Async Callback Features</h4>
+					<ul>
+						<li><strong>Promise Support:</strong> Callbacks can return <code>Promise&lt;void&gt;</code></li>
+						<li><strong>Automatic Error Handling:</strong> Failed operations caught and logged</li>
+						<li><strong>Non-blocking:</strong> Menu clicks properly await async operations</li>
+						<li><strong>Debug Logging:</strong> Errors logged to console automatically</li>
+					</ul>
+
+					<h4>Enhanced Menu Control</h4>
+					<ul>
+						<li><strong>closeMenuCallback Parameter:</strong> Context menu callback receives <code>closeMenuCallback</code> function</li>
+						<li><strong>Conditional Closing:</strong> Call <code>closeMenuCallback()</code> to close menu after successful operations</li>
+						<li><strong>Error Resilience:</strong> Skip <code>closeMenuCallback()</code> on errors to keep menu open for retry</li>
+						<li><strong>Flexible UX:</strong> Control exactly when menu closes based on operation success/failure</li>
+					</ul>
+
+					<h4>Enhanced Error Handling</h4>
+					<ul>
+						<li><strong>Try/Catch Wrapper:</strong> Automatic error catching for all async callbacks</li>
+						<li><strong>Console Logging:</strong> Failed operations logged for debugging</li>
+						<li><strong>Menu Persistence:</strong> Menu stays open on errors for retry actions</li>
+						<li><strong>Custom Error Handling:</strong> Developers can implement custom error handling</li>
+					</ul>
+
+					<h4>Use Cases</h4>
+					<ul>
+						<li><strong>API Calls:</strong> Network requests for data updates</li>
+						<li><strong>File Operations:</strong> Upload, download, or file system operations</li>
+						<li><strong>Database Operations:</strong> CRUD operations with loading states</li>
+						<li><strong>Long-running Tasks:</strong> Background processing operations</li>
+					</ul>
+
+					<h4>Best Practices</h4>
+					<ul>
+						<li>Always handle potential errors in your async callbacks</li>
+						<li>Provide user feedback for long-running operations</li>
+						<li>Use try/catch blocks for custom error handling</li>
+						<li>Consider operation timeouts for network requests</li>
 					</ul>
 				</div>
 			{/snippet}

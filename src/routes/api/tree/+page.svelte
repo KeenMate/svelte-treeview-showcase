@@ -246,6 +246,216 @@
 			{/snippet}
 		</ShowcaseSection>
 
+		<!-- 🖱️ Context Menu Section -->
+		<ShowcaseSection
+			titleText="🖱️ Context Menu API"
+			subtitleText="Right-click context menus with callback and snippet approaches"
+			demoColumnTitle="Context Menu Properties"
+			controlsColumnTitle="Context Menu Usage"
+			descriptionColumnTitle="Context Menu Features">
+
+			{#snippet demoContent()}
+				<div class="table-responsive">
+					<table class="table table-hover">
+						<thead class="table-dark">
+							<tr>
+								<th style="width: 25%">Property</th>
+								<th style="width: 20%">Type</th>
+								<th style="width: 15%">Default</th>
+								<th style="width: 40%">Description</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><code>contextMenuCallback</code></td>
+								<td><code>(node, closeMenuCallback) => ContextMenuItem[]</code></td>
+								<td><code>null</code></td>
+								<td>Function returning ContextMenuItem[] for dynamic menus. <strong>🆕 v4.3.1:</strong> Now receives <code>closeMenuCallback</code> parameter</td>
+							</tr>
+							<tr>
+								<td><code>contextMenuXOffset</code></td>
+								<td><code>number</code></td>
+								<td><code>8</code></td>
+								<td>Horizontal offset from cursor position (px)</td>
+							</tr>
+							<tr>
+								<td><code>contextMenuYOffset</code></td>
+								<td><code>number</code></td>
+								<td><code>0</code></td>
+								<td>Vertical offset from cursor position (px)</td>
+							</tr>
+							<tr>
+								<td><code>shouldDisplayContextMenuInDebugMode</code></td>
+								<td><code>boolean</code></td>
+								<td><code>false</code></td>
+								<td>Show persistent debug context menu at fixed position</td>
+							</tr>
+						</tbody>
+					</table>
+
+					<div class="mt-4">
+						<h6>ContextMenuItem Interface</h6>
+						<div class="table-responsive">
+							<table class="table table-hover">
+								<thead class="table-secondary">
+									<tr>
+										<th style="width: 20%">Property</th>
+										<th style="width: 25%">Type</th>
+										<th style="width: 15%">Required</th>
+										<th style="width: 40%">Description</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td><code>icon</code></td>
+										<td><code>string</code></td>
+										<td><span class="text-muted">Optional</span></td>
+										<td>Icon or emoji for menu item</td>
+									</tr>
+									<tr>
+										<td><code>title</code></td>
+										<td><code>string</code></td>
+										<td><span class="text-muted">Optional</span></td>
+										<td>Display text for menu item</td>
+									</tr>
+									<tr>
+										<td><code>callback</code></td>
+										<td><code>() => void | Promise&lt;void&gt;</code></td>
+										<td><span class="text-muted">Optional</span></td>
+										<td><strong>🆕 v4.3.1:</strong> Sync or async function to execute</td>
+									</tr>
+									<tr>
+										<td><code>isDisabled</code></td>
+										<td><code>boolean</code></td>
+										<td><span class="text-muted">Optional</span></td>
+										<td>Disable menu item interaction</td>
+									</tr>
+									<tr>
+										<td><code>isDivider</code></td>
+										<td><code>boolean</code></td>
+										<td><span class="text-muted">Optional</span></td>
+										<td>Render as visual separator line</td>
+									</tr>
+									<tr>
+										<td><code>className</code></td>
+										<td><code>string</code></td>
+										<td><span class="text-muted">Optional</span></td>
+										<td>CSS classes for custom styling</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+					<div class="alert alert-success mt-3">
+						<h6><strong>🆕 New in v4.3.1 (2025-09-25):</strong></h6>
+						<ul class="mb-0">
+							<li><strong>Async Callback Support:</strong> Menu callbacks can now return <code>Promise&lt;void&gt;</code></li>
+							<li><strong>Automatic Error Handling:</strong> Failed async operations are caught and logged automatically</li>
+							<li><strong>Enhanced Menu Control:</strong> Callbacks receive <code>closeMenuCallback</code> parameter for programmatic control</li>
+						</ul>
+					</div>
+				</div>
+			{/snippet}
+
+			{#snippet controlsContent()}
+				<CodeBlock
+					codeContent={`<!-- Callback-based Context Menu (Recommended) -->
+<Tree
+  treeId="context-menu-tree"
+  data={treeData}
+  idMember="id"
+  pathMember="path"
+  displayValueMember="name"
+  contextMenuCallback={createContextMenu}
+  contextMenuXOffset={10}
+  contextMenuYOffset={-5}
+/>
+
+<script>
+  // Callback function - NEW: Async support in v4.3.1
+  const createContextMenu = (node, closeMenuCallback) => {
+    return [
+      {
+        icon: '🔗',
+        title: 'Copy Link (Async)',
+        callback: async () => {
+          // Async operations now fully supported
+          await navigator.clipboard.writeText(node.data.url);
+          console.log('Link copied successfully');
+          closeMenuCallback(); // Optional: close menu after success
+        }
+      },
+      {
+        icon: '📁',
+        title: 'Create Folder',
+        callback: async () => {
+          try {
+            await createFolder(node.data.path);
+            // Success - menu closes automatically
+          } catch (error) {
+            // Error caught and logged automatically
+            console.error('Failed to create folder:', error);
+            // Menu stays open for retry
+          }
+        }
+      },
+      { isDivider: true },
+      {
+        icon: '🗑️',
+        title: 'Delete',
+        callback: () => deleteItem(node),
+        isDisabled: !node.data.canDelete,
+        className: 'text-danger'
+      }
+    ];
+  };
+</script>
+
+<!-- Snippet-based Context Menu (Advanced) -->
+<Tree treeId="snippet-context-tree" data={treeData} idMember="id" pathMember="path" displayValueMember="name">
+  {#snippet contextMenu(node, closeMenu)}
+    <div class="ltree-context-menu">
+      <button class="ltree-context-menu-item" onclick={() => action(node, closeMenu)}>
+        <span class="ltree-context-menu-icon">⚙️</span>
+        <span class="ltree-context-menu-label">Custom Action</span>
+      </button>
+    </div>
+  {/snippet}
+</Tree>`}
+					languageType="svelte"
+					titleText="Context Menu Implementation"
+				/>
+			{/snippet}
+
+			{#snippet descriptionContent()}
+				<div class="prose">
+					<h5>🔄 Two Approaches</h5>
+					<ul>
+						<li><strong>Callback-based:</strong> Dynamic, type-safe, recommended for most cases</li>
+						<li><strong>Snippet-based:</strong> Full control, custom layouts, advanced styling</li>
+					</ul>
+
+					<h5>🆕 Async Callback Features (v4.3.1)</h5>
+					<ul>
+						<li><strong>Promise Support:</strong> Return <code>Promise&lt;void&gt;</code> from callbacks</li>
+						<li><strong>Error Handling:</strong> Automatic try/catch wrapper with console logging</li>
+						<li><strong>Menu Control:</strong> Optional <code>closeMenuCallback</code> parameter</li>
+						<li><strong>Robustness:</strong> Menu stays open on errors for user retry</li>
+					</ul>
+
+					<h5>📍 Position Control</h5>
+					<p>Fine-tune menu positioning with X/Y offset properties for optimal cursor clearance.</p>
+
+					<h5>🔧 Debug Mode</h5>
+					<p>Use <code>shouldDisplayContextMenuInDebugMode</code> for persistent menu display during development.</p>
+
+					<h5>🎨 Styling Options</h5>
+					<p>Apply custom CSS classes with <code>className</code> property or use snippet approach for complete control.</p>
+				</div>
+			{/snippet}
+		</ShowcaseSection>
+
 		<!-- 🎪 Events Section -->
 		<ShowcaseSection
 			titleText="🎪 Events"
