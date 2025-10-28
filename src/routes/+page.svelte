@@ -74,59 +74,6 @@
 			</div>
 		</div>
 
-		<!-- Live Demo Section -->
-		<div class="row g-4 mb-5">
-			<div class="col-md-6">
-				<div class="card h-100">
-					<div class="card-header">
-						<h5 class="mb-0">🌳 Basic Tree</h5>
-					</div>
-					<div class="card-body">
-						<div class="tree-demo" style="min-height: 300px;">
-							<Tree
-								data={basicTreeData}
-								idMember="id"
-								pathMember="path"
-								displayValueMember="name"
-								{expandLevel}
-								shouldToggleOnNodeClick={true}
-								{sortCallback}
-							/>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="col-md-6">
-				<div class="card h-100">
-					<div class="card-header">
-						<h5 class="mb-0">🎛️ Tree Controls</h5>
-					</div>
-					<div class="card-body">
-						<div class="form-group mb-3">
-							<label class="form-label">Expand Level: {expandLevel}</label>
-							<input
-								type="range"
-								class="form-range"
-								bind:value={expandLevel}
-								min="0"
-								max="5"
-							/>
-						</div>
-						<div class="mt-4">
-							<h6>Features Demonstrated:</h6>
-							<ul class="list-unstyled">
-								<li>✅ Hierarchical data display</li>
-								<li>✅ Path-based structure</li>
-								<li>✅ Expandable/collapsible nodes</li>
-								<li>✅ Custom sorting</li>
-								<li>✅ Type-based icons</li>
-							</ul>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-
 		<!-- Key Features -->
 		<div class="row g-4 mb-5">
 			<div class="col-md-6 col-lg-4">
