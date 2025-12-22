@@ -107,7 +107,7 @@
 	<div class="py-1">
 		<!-- Theme Showcase -->
 		<ShowcaseSection
-			titleText="Pre-built Themes"
+			titleText="CS01 Pre-built Themes"
 			subtitleText="Choose from different visual themes"
 			demoColumnTitle="Live Theme Demo"
 			controlsColumnTitle="Theme Selection"
@@ -205,7 +205,7 @@
 
 		<!-- CSS Customization -->
 		<ShowcaseSection
-			titleText="CSS Customization Guide"
+			titleText="CS02 CSS Customization Guide"
 			subtitleText="Learn how to create custom styles for your tree"
 			demoColumnTitle="CSS Examples"
 			controlsColumnTitle="Theme CSS"
@@ -349,7 +349,7 @@
 
 		<!-- Icon Configuration -->
 		<ShowcaseSection
-			titleText="Icon Configuration"
+			titleText="CS03 Icon Configuration"
 			subtitleText="Different approaches to displaying icons"
 			demoColumnTitle="Icon Examples"
 			controlsColumnTitle="Icon Settings"

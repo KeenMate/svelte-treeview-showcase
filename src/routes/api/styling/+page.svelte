@@ -94,7 +94,7 @@
 
 		<!-- 🎨 Theme Gallery Section -->
 		<ShowcaseSection
-			titleText="🎨 Theme Gallery"
+			titleText="ST01 🎨 Theme Gallery"
 			subtitleText="Pre-built themes and live styling examples"
 			demoColumnTitle="Live Theme Preview"
 			controlsColumnTitle="Theme Selector"
@@ -170,7 +170,7 @@
 
 		<!-- 🔧 CSS Classes Section -->
 		<ShowcaseSection
-			titleText="🔧 CSS Classes & Selectors"
+			titleText="ST02 🔧 CSS Classes & Selectors"
 			subtitleText="Available CSS classes and selectors for customization"
 			demoColumnTitle="CSS Class Reference"
 			controlsColumnTitle="Styling Examples"
@@ -353,7 +353,7 @@
 
 		<!-- 🌈 Custom Themes Section -->
 		<ShowcaseSection
-			titleText="🌈 Custom Themes"
+			titleText="ST03 🌈 Custom Themes"
 			subtitleText="Create your own themes with CSS custom properties"
 			demoColumnTitle="Theme Examples"
 			controlsColumnTitle="Theme Implementation"
@@ -490,7 +490,7 @@
 
 		<!-- 📱 Responsive Design Section -->
 		<ShowcaseSection
-			titleText="📱 Responsive Design"
+			titleText="ST04 📱 Responsive Design"
 			subtitleText="Mobile-friendly styling and responsive behaviors"
 			demoColumnTitle="Responsive Features"
 			controlsColumnTitle="Responsive CSS"
@@ -638,6 +638,162 @@
 
 					<h6>⚡ Performance</h6>
 					<p>Efficient CSS that doesn't impact rendering performance on mobile devices.</p>
+				</div>
+			{/snippet}
+		</ShowcaseSection>
+
+		<!-- 🎯 Drag & Drop Classes Section (v4.5.0+) -->
+		<ShowcaseSection
+			titleText="ST05 🎯 Drag & Drop Styling (v4.5.0+)"
+			subtitleText="CSS classes for drag-drop visual feedback, drop zones, and touch support"
+			demoColumnTitle="Class Reference"
+			controlsColumnTitle="Styling Examples"
+			descriptionColumnTitle="Implementation Guide">
+
+			{#snippet demoContent()}
+				<div class="table-responsive">
+					<table class="table table-hover">
+						<thead class="table-dark">
+							<tr>
+								<th style="width: 30%">Class</th>
+								<th style="width: 20%">Category</th>
+								<th style="width: 50%">Description</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr class="table-info">
+								<td><code>.ltree-dragover-highlight</code></td>
+								<td>Drag Over</td>
+								<td>Simple border highlight on drag-over target</td>
+							</tr>
+							<tr class="table-info">
+								<td><code>.ltree-dragover-glow</code></td>
+								<td>Drag Over</td>
+								<td>Glow effect with arrow indicators for drop positions</td>
+							</tr>
+							<tr class="table-success">
+								<td><code>.ltree-glow-above</code></td>
+								<td>Glow Position</td>
+								<td>Green glow on top edge (insert above)</td>
+							</tr>
+							<tr class="table-success">
+								<td><code>.ltree-glow-below</code></td>
+								<td>Glow Position</td>
+								<td>Orange glow on bottom edge (insert below)</td>
+							</tr>
+							<tr class="table-success">
+								<td><code>.ltree-glow-child</code></td>
+								<td>Glow Position</td>
+								<td>Purple glow on right edge (insert as child)</td>
+							</tr>
+							<tr class="table-warning">
+								<td><code>.ltree-drop-placeholder</code></td>
+								<td>Empty Tree</td>
+								<td>Container for empty tree drop zone</td>
+							</tr>
+							<tr class="table-warning">
+								<td><code>.ltree-drop-placeholder-content</code></td>
+								<td>Empty Tree</td>
+								<td>Content inside empty tree placeholder</td>
+							</tr>
+							<tr class="table-warning">
+								<td><code>.ltree-root-drop-zone</code></td>
+								<td>Root Drop</td>
+								<td>Drop zone at bottom of non-empty trees</td>
+							</tr>
+							<tr>
+								<td><code>.ltree-touch-ghost</code></td>
+								<td>Touch</td>
+								<td>Ghost element that follows finger during touch drag</td>
+							</tr>
+							<tr>
+								<td><code>.ltree-loading-overlay</code></td>
+								<td>Loading</td>
+								<td>Semi-transparent overlay during isLoading=true</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="alert alert-info mt-3 small">
+					<strong>Tip:</strong> Use <code>dragOverNodeClass="ltree-dragover-glow"</code> to enable the glow mode with arrow indicators.
+				</div>
+			{/snippet}
+
+			{#snippet controlsContent()}
+				<CodeBlock
+					codeContent={`/* Customize glow colors */
+.ltree-node-content.ltree-glow-above {
+  box-shadow: inset 0 3px 0 0 #86b398; /* Green top glow */
+}
+
+.ltree-node-content.ltree-glow-below {
+  box-shadow: inset 0 -3px 0 0 #f2b69e; /* Orange bottom glow */
+}
+
+.ltree-node-content.ltree-glow-child {
+  box-shadow: inset -3px 0 0 0 #a79bc6; /* Purple right glow */
+}
+
+/* Custom touch ghost styling */
+.ltree-touch-ghost {
+  --tree-ghost-bg: rgba(13, 110, 253, 0.9);
+  --tree-ghost-color: white;
+  background: var(--tree-ghost-bg);
+  color: var(--tree-ghost-color);
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  max-width: 200px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Empty tree placeholder */
+.ltree-drop-placeholder {
+  border: 2px dashed #dee2e6;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.ltree-drop-placeholder.drag-over {
+  border-color: #0d6efd;
+  background: rgba(13, 110, 253, 0.05);
+}
+
+/* Loading overlay */
+.ltree-loading-overlay {
+  background: rgba(255, 255, 255, 0.8);
+  /* Custom loading indicator */
+}
+
+/* SCSS variables for arrow indicators */
+$drop-arrow-above: url("data:...");  /* Lucide arrow-big-up */
+$drop-arrow-below: url("data:...");  /* Lucide arrow-big-down */
+$drop-arrow-child: url("data:...");  /* Lucide arrow-big-right-dash */
+$drop-arrow-size: 24px;
+$drop-arrow-position: 66%;
+$drop-arrow-child-rotation: 45deg;`}
+					languageType="scss"
+					titleText="Drag & Drop Customization"
+				/>
+			{/snippet}
+
+			{#snippet descriptionContent()}
+				<div class="prose">
+					<h6>🎯 Glow Mode</h6>
+					<p>Use <code>dragOverNodeClass="ltree-dragover-glow"</code> for position-aware visual feedback with directional arrows.</p>
+
+					<h6>📱 Touch Ghost</h6>
+					<p>Customize the ghost element that follows the user's finger during touch drag operations using CSS variables.</p>
+
+					<h6>📦 Empty Tree Drop</h6>
+					<p>Use the <code>dropPlaceholder</code> snippet to create custom drop targets for empty trees.</p>
+
+					<h6>⏳ Loading State</h6>
+					<p>The <code>isLoading</code> prop shows an overlay - customize it with CSS.</p>
+
+					<h6>🎨 SCSS Customization</h6>
+					<p>Override SCSS variables before importing styles for deep customization of drop indicators and arrows.</p>
 				</div>
 			{/snippet}
 		</ShowcaseSection>

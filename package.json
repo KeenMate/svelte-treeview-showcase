@@ -6,6 +6,7 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
 	},
@@ -21,8 +22,8 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@keenmate/svelte-docs": "^1.0.0-rc03",
-		"@keenmate/svelte-treeview": "^4.2.1",
+		"@keenmate/svelte-docs": "^1.0.0-rc09",
+		"@keenmate/svelte-treeview": "file:../svelte-treeview",
 		"bootstrap": "^5.3.8"
 	}
 }

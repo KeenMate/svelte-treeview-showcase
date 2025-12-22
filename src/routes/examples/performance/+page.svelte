@@ -268,7 +268,7 @@
   <div class="py-1">
     <!-- Performance Monitoring -->
     <ShowcaseSection
-      titleText="Performance Monitoring"
+      titleText="PF01 Performance Monitoring"
       subtitleText="Test different dataset sizes and monitor performance"
       demoColumnTitle="Large Dataset Demo"
       controlsColumnTitle="Performance Controls"
@@ -411,7 +411,7 @@
 
     <!-- Optimization Guide -->
     <ShowcaseSection
-      titleText="Optimization Techniques"
+      titleText="PF02 Optimization Techniques"
       subtitleText="Best practices for large datasets and smooth performance"
       demoColumnTitle="Optimization Tips"
       controlsColumnTitle="Implementation"
@@ -535,7 +535,7 @@ const VirtualTree = ({ data, height = 400 }) => {
 
     <!-- Benchmarking -->
     <ShowcaseSection
-      titleText="Performance Benchmarking"
+      titleText="PF03 Performance Benchmarking"
       subtitleText="Measure and compare performance across different configurations"
       demoColumnTitle="Benchmark Results"
       controlsColumnTitle="Benchmark Code"

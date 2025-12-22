@@ -294,7 +294,7 @@
 	<div class="py-1">
 		<!-- Callback-Based Context Menu -->
 		<ShowcaseSection
-			titleText="🎞️ Callback-Based Context Menu (Recommended)"
+			titleText="CM01 🎞️ Callback-Based Context Menu"
 			subtitleText="Dynamic menus with disabled states using contextMenuCallback"
 			demoColumnTitle="Movie Streaming App"
 			controlsColumnTitle="Callback Code"
@@ -443,7 +443,7 @@ const createMovieContextMenu = (node): ContextMenuItem[] => {
 
 		<!-- Snippet-Based Context Menu -->
 		<ShowcaseSection
-			titleText="🎨 Snippet-Based Context Menu"
+			titleText="CM02 🎨 Snippet-Based Context Menu"
 			subtitleText="Manual template with full control using {'#snippet contextMenu'}"
 			demoColumnTitle="Custom Menu Design"
 			controlsColumnTitle="Template Code"
@@ -603,7 +603,7 @@ const createMovieContextMenu = (node): ContextMenuItem[] => {
 
 		<!-- Async Callback Support -->
 		<ShowcaseSection
-			titleText="⏳ Async Callback Support (NEW)"
+			titleText="CM03 ⏳ Async Callback Support"
 			subtitleText="Context menu callbacks now support async operations with automatic error handling"
 			demoColumnTitle="Async Operations Demo"
 			controlsColumnTitle="Async Examples"
@@ -797,7 +797,7 @@ const createAsyncMovieContextMenu = (node, closeMenuCallback): ContextMenuItem[]
 
 		<!-- Debug Context Menu -->
 		<ShowcaseSection
-			titleText="🔍 Debug Context Menu Mode"
+			titleText="CM04 🔍 Debug Context Menu Mode"
 			subtitleText="Development tool for testing and styling context menus"
 			demoColumnTitle="Debug Configuration"
 			controlsColumnTitle="Position Controls"

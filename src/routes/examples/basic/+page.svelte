@@ -139,7 +139,7 @@
 	<div class="py-1">
 		<!-- Essential Properties -->
 		<ShowcaseSection
-			titleText="Essential Properties"
+			titleText="BU01 Essential Properties"
 			subtitleText="The minimum required configuration to display a tree"
 			demoColumnTitle="Live Demo"
 			controlsColumnTitle="Configuration"
@@ -238,7 +238,7 @@
 
 		<!-- Expand Level Demonstration -->
 		<ShowcaseSection
-			titleText="Expand Level Control"
+			titleText="BU02 Expand Level Control"
 			subtitleText="Control which levels are expanded by default"
 			demoColumnTitle="Deep Tree"
 			controlsColumnTitle="Expand Levels"
@@ -304,7 +304,7 @@
 
 		<!-- Minimal Example -->
 		<ShowcaseSection
-			titleText="Minimal Configuration"
+			titleText="BU03 Minimal Configuration"
 			subtitleText="The absolute minimum required to display a tree"
 			demoColumnTitle="Simple Tree"
 			controlsColumnTitle="Minimal Code"

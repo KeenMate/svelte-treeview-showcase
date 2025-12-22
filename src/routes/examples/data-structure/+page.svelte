@@ -183,7 +183,7 @@
 	<div class="py-1">
 		<!-- Custom Path Separators -->
 		<ShowcaseSection
-			titleText="Custom Path Separators"
+			titleText="DS01 Custom Path Separators"
 			subtitleText="LTree paths can use any separator, not just dots"
 			demoColumnTitle="Slash-separated Paths"
 			controlsColumnTitle="Separator Configuration"
@@ -287,7 +287,7 @@ const sortCallback = (items) => {
 
 		<!-- Automatic Metadata Calculation -->
 		<ShowcaseSection
-			titleText="Automatic Metadata Calculation"
+			titleText="DS02 Automatic Metadata Calculation"
 			subtitleText="Tree automatically calculates level, parentPath, and hasChildren"
 			demoColumnTitle="Minimal Data"
 			controlsColumnTitle="What Gets Calculated"
@@ -365,7 +365,7 @@ const minimalData = [
 
 		<!-- Pre-calculated Metadata -->
 		<ShowcaseSection
-			titleText="Pre-calculated Metadata"
+			titleText="DS03 Pre-calculated Metadata"
 			subtitleText="Optimize performance by providing level, parentPath, and hasChildren"
 			demoColumnTitle="Enriched Data"
 			controlsColumnTitle="Manual Optimization"
@@ -463,7 +463,7 @@ ORDER BY path;`}</code></pre>
 
 		<!-- LTree Structure -->
 		<ShowcaseSection
-			titleText="LTree Path Structure"
+			titleText="DS04 LTree Path Structure"
 			subtitleText="Understanding the hierarchical path system"
 			demoColumnTitle="Path Visualization"
 			controlsColumnTitle="Path Examples"
@@ -536,7 +536,7 @@ const data = [
 
 		<!-- File System Example -->
 		<ShowcaseSection
-			titleText="Windows File System Structure"
+			titleText="DS05 Windows File System Structure"
 			subtitleText="Real Windows paths with backslash separator"
 			demoColumnTitle="Windows File Tree"
 			controlsColumnTitle="Data Structure"
@@ -647,7 +647,7 @@ const fileSystemData = [
 
 		<!-- Data Structure Comparison -->
 		<ShowcaseSection
-			titleText="Data Structure Comparison"
+			titleText="DS06 Data Structure Comparison"
 			subtitleText="Choose the right approach for your use case"
 			demoColumnTitle="Approach Comparison"
 			controlsColumnTitle="Performance Analysis"

@@ -37,7 +37,7 @@
 	<div class="py-1">
 		<!-- Installation -->
 		<ShowcaseSection
-			titleText="Installation"
+			titleText="GS01 Installation"
 			subtitleText="Add the treeview component to your project"
 			demoColumnTitle="Package Manager"
 			controlsColumnTitle="Verify Installation"
@@ -90,7 +90,7 @@ console.log(Tree); // Should output the component`}
 
 		<!-- Quick Start -->
 		<ShowcaseSection
-			titleText="Quick Start"
+			titleText="GS02 Quick Start"
 			subtitleText="Get a basic tree up and running in minutes"
 			demoColumnTitle="Live Example"
 			controlsColumnTitle="Complete Code"
@@ -151,7 +151,7 @@ console.log(Tree); // Should output the component`}
 
 		<!-- Configuration -->
 		<ShowcaseSection
-			titleText="Basic Configuration"
+			titleText="GS03 Basic Configuration"
 			subtitleText="Customize behavior and appearance"
 			demoColumnTitle="Configured Tree"
 			controlsColumnTitle="Configuration Code"

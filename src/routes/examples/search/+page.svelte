@@ -301,7 +301,7 @@
 	<div class="py-1">
 		<!-- Basic Search -->
 		<ShowcaseSection
-			titleText="Basic Search Functionality"
+			titleText="SF01 Basic Search Functionality"
 			subtitleText="Built-in search with FlexSearch integration"
 			demoColumnTitle="Interactive Search"
 			controlsColumnTitle="Search Controls"
@@ -517,7 +517,7 @@
 
 		<!-- Advanced Search Configuration -->
 		<ShowcaseSection
-			titleText="Advanced Search Configuration"
+			titleText="SF02 Advanced Search Configuration"
 			subtitleText="Fine-tune search performance and behavior"
 			demoColumnTitle="Performance Settings"
 			controlsColumnTitle="Indexer Configuration"
@@ -610,7 +610,7 @@
 
 		<!-- Custom Search Callback -->
 		<ShowcaseSection
-			titleText="Custom Search Callback"
+			titleText="SF03 Custom Search Callback"
 			subtitleText="Define exactly what content should be searchable"
 			demoColumnTitle="Custom Search Logic"
 			controlsColumnTitle="Callback Implementation"

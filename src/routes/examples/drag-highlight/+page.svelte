@@ -87,20 +87,20 @@
 		return false;
 	};
 
-	// Event handlers
-	const handleDragStart = (event: CustomEvent) => {
-		const message = `🟡 Started dragging: ${event.detail.draggedNode.data.name}`;
+	// Event handlers - using callback-style props (Svelte 5)
+	const handleDragStart = (node: any, event: DragEvent) => {
+		const message = `🟡 Started dragging: ${node.data.name}`;
 		dragEvents = [message, ...dragEvents.slice(0, 9)];
 	};
 
-	const handleDragOver = (event: CustomEvent) => {
-		const message = `🔵 Hovering over: ${event.detail.targetNode.data.name}`;
+	const handleDragOver = (node: any, event: DragEvent) => {
+		const message = `🔵 Hovering over: ${node.data.name}`;
 		dragEvents = [message, ...dragEvents.slice(0, 9)];
 	};
 
-	const handleDrop = (event: CustomEvent) => {
-		const { draggedNode, targetNode } = event.detail;
-		const message = `✅ Dropped: ${draggedNode.data.name} → ${targetNode.data.name}`;
+	const handleDrop = (dropNode: any, draggedNode: any, position: string, event: DragEvent | TouchEvent, operation: string) => {
+		const targetName = dropNode?.data?.name || 'root';
+		const message = `✅ Dropped: ${draggedNode.data.name} → ${targetName} (${position}, ${operation})`;
 		dragEvents = [message, ...dragEvents.slice(0, 9)];
 	};
 
@@ -136,7 +136,7 @@
 	<div class="py-1">
 		<!-- Interactive Highlight Demo -->
 		<ShowcaseSection
-			titleText="Interactive Highlight Demo"
+			titleText="DH01 Interactive Highlight Demo"
 			subtitleText="Try different highlight styles during drag operations"
 			demoColumnTitle="Drag & Drop Tree"
 			controlsColumnTitle="Highlight Controls"
@@ -159,9 +159,9 @@
 						{sortCallback}
 						expandLevel={3}
 						shouldToggleOnNodeClick={true}
-						on:dragStart={handleDragStart}
-						on:dragOver={handleDragOver}
-						on:drop={handleDrop}
+						onNodeDragStart={handleDragStart}
+						onNodeDragOver={handleDragOver}
+						onNodeDrop={handleDrop}
 					/>
 				</div>
 			{/snippet}
@@ -229,7 +229,7 @@
 
 		<!-- CSS Implementation -->
 		<ShowcaseSection
-			titleText="CSS Implementation"
+			titleText="DH02 CSS Implementation"
 			subtitleText="How to create custom drag highlight styles"
 			demoColumnTitle="CSS Examples"
 			controlsColumnTitle="Configuration"

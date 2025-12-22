@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { DocLayout, ShowcaseSection, CodeBlock } from '@keenmate/svelte-docs';
-	import { Tree } from '@keenmate/svelte-treeview';
+	import { Tree, type LTreeNode } from '@keenmate/svelte-treeview';
 
 	// Sample data for event demonstration
 	const eventData = [
@@ -12,8 +12,8 @@
 		{ id: '2.1', path: '2.1', name: '📋 Empty Folder', type: 'folder', isDraggable: true, isDropAllowed: true }
 	];
 
-	// Event log
-	let eventLog = $state<any[]>([]);
+	// Callback log
+	let callbackLog = $state<any[]>([]);
 	let searchText = $state('');
 
 	// Helper function to get level from path
@@ -44,95 +44,84 @@
 		return targetNode.data.isDropAllowed;
 	};
 
-	// Add event to log
-	function addEventToLog(eventType: string, eventDetail: any) {
+	// Add callback to log
+	function addCallbackToLog(callbackType: string, detail: any) {
 		const timestamp = new Date().toLocaleTimeString();
-		const newEvent = {
+		const newEntry = {
 			id: Date.now(),
-			type: eventType,
+			type: callbackType,
 			timestamp,
-			detail: eventDetail,
-			icon: getEventIcon(eventType)
+			detail,
+			icon: getCallbackIcon(callbackType)
 		};
-		eventLog = [newEvent, ...eventLog.slice(0, 19)]; // Keep last 20 events
+		callbackLog = [newEntry, ...callbackLog.slice(0, 19)]; // Keep last 20 entries
 	}
 
-	function getEventIcon(eventType: string): string {
-		const icons = {
-			nodeClick: '👆',
-			nodeExpand: '📂',
-			nodeSelect: '✅',
-			dragStart: '🟡',
-			dragOver: '🔵',
-			drop: '✅',
-			dragEnd: '🔴',
-			searchResult: '🔍'
+	function getCallbackIcon(callbackType: string): string {
+		const icons: Record<string, string> = {
+			onNodeClicked: '👆',
+			onNodeDragStart: '🟡',
+			onNodeDragOver: '🔵',
+			onNodeDrop: '✅'
 		};
-		return icons[eventType] || '⚙️';
+		return icons[callbackType] || '⚙️';
 	}
 
-	function clearEventLog() {
-		eventLog = [];
+	function clearCallbackLog() {
+		callbackLog = [];
 	}
 
-	// Event handlers
-	const handleNodeClick = (event: CustomEvent) => {
-		addEventToLog('nodeClick', {
-			nodeName: event.detail.data.name,
-			nodeId: event.detail.id
+	// Svelte 5 callback props handlers
+	const handleNodeClicked = (node: LTreeNode<any>) => {
+		addCallbackToLog('onNodeClicked', {
+			nodeName: node.data?.name,
+			path: node.path
 		});
 	};
 
-	const handleNodeExpand = (event: CustomEvent) => {
-		addEventToLog('nodeExpand', {
-			nodeId: event.detail.id,
-			expanded: event.detail.expanded
+	const handleNodeDragStart = (node: LTreeNode<any>, event: DragEvent) => {
+		addCallbackToLog('onNodeDragStart', {
+			nodeName: node.data?.name,
+			path: node.path
 		});
 	};
 
-	const handleNodeSelect = (event: CustomEvent) => {
-		addEventToLog('nodeSelect', {
-			nodeId: event.detail.id,
-			selected: event.detail.selected
+	const handleNodeDragOver = (node: LTreeNode<any>, event: DragEvent) => {
+		addCallbackToLog('onNodeDragOver', {
+			nodeName: node.data?.name,
+			path: node.path
 		});
 	};
 
-	const handleDragStart = (event: CustomEvent) => {
-		addEventToLog('dragStart', {
-			nodeId: event.detail.draggedNode?.id,
-			nodeName: event.detail.draggedNode?.data?.name
-		});
-	};
-
-	const handleDragEnd = (event: CustomEvent) => {
-		addEventToLog('dragEnd', {
-			draggedNodeId: event.detail.draggedNode?.id,
-			targetNodeId: event.detail.targetNode?.id,
-			success: event.detail.success
-		});
-	};
-
-	const handleSearchResult = (event: CustomEvent) => {
-		addEventToLog('searchResult', {
-			query: event.detail.query,
-			resultCount: event.detail.results?.length || 0
+	const handleNodeDrop = (
+		dropNode: LTreeNode<any> | null,
+		draggedNode: LTreeNode<any>,
+		position: 'above' | 'below' | 'child',
+		event: DragEvent | TouchEvent,
+		operation: 'move' | 'copy'
+	) => {
+		addCallbackToLog('onNodeDrop', {
+			dropNode: dropNode?.path ?? 'root',
+			draggedNode: draggedNode.path,
+			position,
+			operation
 		});
 	};
 </script>
 
 <DocLayout
-	titleText="Events Reference"
-	descriptionText="Complete event system documentation with live examples and event monitoring">
+	titleText="Callback Props Reference"
+	descriptionText="Svelte 5 callback props documentation with live examples and interaction monitoring">
 
 	<div class="py-1">
 
-		<!-- 🎪 Event Monitor Section -->
+		<!-- 🎪 Callback Monitor Section -->
 		<ShowcaseSection
-			titleText="🎪 Live Event Monitor"
-			subtitleText="Interact with the tree to see events in real-time"
+			titleText="EV01 🎪 Live Callback Monitor"
+			subtitleText="Interact with the tree to see callback invocations in real-time"
 			demoColumnTitle="Interactive Tree"
-			controlsColumnTitle="Live Event Log"
-			descriptionColumnTitle="Event Monitor Guide">
+			controlsColumnTitle="Callback Log"
+			descriptionColumnTitle="Callback Guide">
 
 			{#snippet demoContent()}
 				<div class="mb-3">
@@ -143,7 +132,7 @@
 							placeholder="Search nodes..."
 							bind:value={searchText}
 						>
-						<button class="btn btn-outline-secondary" onclick={clearEventLog}>
+						<button class="btn btn-outline-secondary" onclick={clearCallbackLog}>
 							Clear Log
 						</button>
 					</div>
@@ -161,40 +150,38 @@
 						{dragValidationCallback}
 						{sortCallback}
 						{searchText}
-						on:nodeClick={handleNodeClick}
-						on:nodeExpand={handleNodeExpand}
-						on:nodeSelect={handleNodeSelect}
-						on:dragStart={handleDragStart}
-						on:dragEnd={handleDragEnd}
-						on:searchResult={handleSearchResult}
+						onNodeClicked={handleNodeClicked}
+						onNodeDragStart={handleNodeDragStart}
+						onNodeDragOver={handleNodeDragOver}
+						onNodeDrop={handleNodeDrop}
 					/>
 				</div>
 			{/snippet}
 
 			{#snippet controlsContent()}
-				<div class="event-log">
+				<div class="callback-log">
 					<div class="d-flex justify-content-between align-items-center mb-3">
-						<h6 class="mb-0">Event Log</h6>
-						<span class="badge bg-primary">{eventLog.length}</span>
+						<h6 class="mb-0">Callback Log</h6>
+						<span class="badge bg-primary">{callbackLog.length}</span>
 					</div>
 					<div class="log-container" style="max-height: 300px; overflow-y: auto;">
-						{#if eventLog.length === 0}
+						{#if callbackLog.length === 0}
 							<div class="text-muted text-center py-3">
-								<small>No events yet. Interact with the tree to see events appear here.</small>
+								<small>No callbacks yet. Interact with the tree to see callbacks invoked here.</small>
 							</div>
 						{:else}
-							{#each eventLog as event (event.id)}
-								<div class="event-entry mb-2 p-2 border rounded">
+							{#each callbackLog as entry (entry.id)}
+								<div class="callback-entry mb-2 p-2 border rounded">
 									<div class="d-flex justify-content-between align-items-start">
 										<div class="d-flex align-items-center">
-											<span class="me-2">{event.icon}</span>
-											<strong class="text-capitalize">{event.type}</strong>
+											<span class="me-2">{entry.icon}</span>
+											<strong><code>{entry.type}</code></strong>
 										</div>
-										<small class="text-muted">{event.timestamp}</small>
+										<small class="text-muted">{entry.timestamp}</small>
 									</div>
 									<div class="mt-1">
 										<small class="text-muted">
-											{JSON.stringify(event.detail, null, 0)}
+											{JSON.stringify(entry.detail, null, 0)}
 										</small>
 									</div>
 								</div>
@@ -205,34 +192,33 @@
 			{/snippet}
 
 			{#snippet descriptionContent()}
-				<div class="event-guide">
-					<h6>🎯 How to Test Events:</h6>
+				<div class="callback-guide">
+					<h6>🎯 How to Test Callbacks:</h6>
 					<ul class="list-unstyled">
-						<li>👆 <strong>Click</strong> nodes to trigger click events</li>
-						<li>📂 <strong>Expand/collapse</strong> folders to see expand events</li>
-						<li>🔍 <strong>Search</strong> to trigger search result events</li>
-						<li>🤏 <strong>Drag & drop</strong> items to see drag events</li>
-						<li>✅ <strong>Select</strong> nodes to see selection events</li>
+						<li>👆 <strong>Click</strong> nodes to trigger <code>onNodeClicked</code></li>
+						<li>🟡 <strong>Start drag</strong> to trigger <code>onNodeDragStart</code></li>
+						<li>🔵 <strong>Drag over</strong> nodes for <code>onNodeDragOver</code></li>
+						<li>✅ <strong>Drop</strong> to trigger <code>onNodeDrop</code></li>
 					</ul>
 
 					<div class="mt-3">
-						<h6>📊 Event Statistics:</h6>
+						<h6>📊 Callback Statistics:</h6>
 						<small class="text-muted">
-							Total events captured: <span class="fw-bold">{eventLog.length}</span><br>
-							Log displays last 20 events<br>
-							Events are captured in real-time
+							Total callbacks logged: <span class="fw-bold">{callbackLog.length}</span><br>
+							Log displays last 20 invocations<br>
+							Callbacks logged in real-time
 						</small>
 					</div>
 				</div>
 			{/snippet}
 		</ShowcaseSection>
 
-		<!-- 🔥 Core Events Section -->
+		<!-- 🔥 Callback Props Reference Section -->
 		<ShowcaseSection
-			titleText="🔥 Core Events"
-			subtitleText="Essential events fired by user interactions"
-			demoColumnTitle="Event Reference"
-			controlsColumnTitle="Event Handling Examples"
+			titleText="EV02 🔥 Callback Props Reference"
+			subtitleText="Svelte 5 callback props for handling user interactions"
+			demoColumnTitle="Callback Reference"
+			controlsColumnTitle="Usage Examples"
 			descriptionColumnTitle="Implementation Guide">
 
 			{#snippet demoContent()}
@@ -240,486 +226,400 @@
 					<table class="table table-hover">
 						<thead class="table-dark">
 							<tr>
-								<th style="width: 20%">Event</th>
+								<th style="width: 25%">Callback</th>
 								<th style="width: 15%">Trigger</th>
-								<th style="width: 25%">Event Detail</th>
-								<th style="width: 40%">Description</th>
+								<th style="width: 30%">Signature</th>
+								<th style="width: 30%">Description</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
-								<td><code>nodeClick</code></td>
+								<td><code>onNodeClicked</code></td>
 								<td>User click</td>
-								<td><code>{'{'} id, data, path, level {'}'}</code></td>
-								<td>Fired when user clicks on any part of a tree node</td>
+								<td><code>(node: LTreeNode&lt;T&gt;) =&gt; void</code></td>
+								<td>Called when user clicks on any tree node</td>
 							</tr>
 							<tr>
-								<td><code>nodeExpand</code></td>
-								<td>Expand/collapse</td>
-								<td><code>{'{'} id, expanded, children, level {'}'}</code></td>
-								<td>Fired when a node's expanded state changes</td>
+								<td><code>onNodeDragStart</code></td>
+								<td>Drag begins</td>
+								<td><code>(node: LTreeNode&lt;T&gt;, event: DragEvent) =&gt; void</code></td>
+								<td>Called when user starts dragging a node</td>
 							</tr>
 							<tr>
-								<td><code>nodeSelect</code></td>
-								<td>Selection change</td>
-								<td><code>{'{'} id, selected, data, path {'}'}</code></td>
-								<td>Fired when a node's selection state changes</td>
+								<td><code>onNodeDragOver</code></td>
+								<td>Drag over</td>
+								<td><code>(node: LTreeNode&lt;T&gt;, event: DragEvent) =&gt; void</code></td>
+								<td>Called when dragged node hovers over a target</td>
 							</tr>
-							<tr>
-								<td><code>nodeFocus</code></td>
-								<td>Keyboard focus</td>
-								<td><code>{'{'} id, data, previousFocus {'}'}</code></td>
-								<td>Fired when focus moves to a different node</td>
+							<tr class="table-info">
+								<td><code>onNodeDrop</code></td>
+								<td>Drop</td>
+								<td><code>(dropNode, draggedNode, position, event, operation) =&gt; void</code></td>
+								<td><strong>v4.5.0+:</strong> Extended signature with position and operation</td>
 							</tr>
 						</tbody>
 					</table>
+				</div>
+
+				<div class="alert alert-info mt-3">
+					<h6 class="alert-heading">Svelte 5 Callback Props</h6>
+					<p class="mb-0">Unlike Svelte 4's <code>on:event</code> dispatcher syntax, Svelte 5 uses <strong>callback props</strong>. Pass functions directly as props: <code>onNodeClicked={'{'}handler{'}'}</code></p>
 				</div>
 			{/snippet}
 
 			{#snippet controlsContent()}
 				<CodeBlock
-					codeContent={`<script>
-  // Handle basic node interactions
-  function handleNodeClick(event) {
-    const { id, data, path, level } = event.detail;
-    console.log(\`Node clicked: \${data.name}\`);
+					codeContent={`<script lang="ts">
+  import { Tree, type LTreeNode } from '@keenmate/svelte-treeview';
+
+  // Handle node click
+  function handleNodeClicked(node: LTreeNode<MyData>) {
+    console.log(\`Clicked: \${node.data?.name}\`);
+    console.log(\`Path: \${node.path}\`);
 
     // Custom logic based on node type
-    if (data.type === 'folder') {
-      // Handle folder click
-      openFolder(id);
-    } else if (data.type === 'file') {
-      // Handle file click
-      openFile(id);
+    if (node.data?.type === 'folder') {
+      openFolder(node);
+    } else {
+      openFile(node);
     }
   }
 
-  function handleNodeExpand(event) {
-    const { id, expanded, children } = event.detail;
-
-    if (expanded) {
-      console.log(\`Expanded node \${id} with \${children.length} children\`);
-      // Optionally load dynamic children
-      if (children.length === 0) {
-        loadDynamicChildren(id);
-      }
-    } else {
-      console.log(\`Collapsed node \${id}\`);
-    }
+  // Handle drag start
+  function handleDragStart(node: LTreeNode<MyData>, event: DragEvent) {
+    console.log(\`Started dragging: \${node.path}\`);
+    // Add custom drag data if needed
+    event.dataTransfer?.setData('text/plain', node.path);
   }
 
-  function handleNodeSelect(event) {
-    const { id, selected, data } = event.detail;
-
-    // Update selection state in your app
-    if (selected) {
-      selectedItems.add(id);
-      updateSelectionUI();
-    } else {
-      selectedItems.delete(id);
-      updateSelectionUI();
-    }
+  // Handle drag over
+  function handleDragOver(node: LTreeNode<MyData>, event: DragEvent) {
+    console.log(\`Hovering over: \${node.path}\`);
   }
 </script>
 
 <Tree
-  treeId="api-events-core"
-  data={treeData}
-  idMember="id"
-  pathMember="path"
-  displayValueMember="name"
-  on:nodeClick={handleNodeClick}
-  on:nodeExpand={handleNodeExpand}
-  on:nodeSelect={handleNodeSelect}
-  on:nodeFocus={handleNodeFocus}
-/>`}
-					languageType="svelte"
-					titleText="Core Event Handling"
-				/>
-			{/snippet}
-
-			{#snippet descriptionContent()}
-				<div class="prose">
-					<h6>🎯 Event Timing</h6>
-					<p>Core events fire immediately when user interactions occur, allowing for real-time response.</p>
-
-					<h6>📊 Event Detail Structure</h6>
-					<p>All events include consistent data structure with node information, state changes, and context.</p>
-
-					<h6>🔄 State Management</h6>
-					<p>Use events to sync tree state with your application state management system (Redux, Zustand, etc.).</p>
-
-					<h6>⚡ Performance Notes</h6>
-					<ul>
-						<li>Events are throttled for high-frequency actions</li>
-						<li>Event handlers should be lightweight</li>
-						<li>Use event delegation patterns for large trees</li>
-					</ul>
-				</div>
-			{/snippet}
-		</ShowcaseSection>
-
-		<!-- 🤏 Drag & Drop Events Section -->
-		<ShowcaseSection
-			titleText="🤏 Drag & Drop Events"
-			subtitleText="Events for drag and drop operations with detailed feedback"
-			demoColumnTitle="Drag Event Reference"
-			controlsColumnTitle="Drag Event Implementation"
-			descriptionColumnTitle="Drag & Drop Guide">
-
-			{#snippet demoContent()}
-				<div class="table-responsive">
-					<table class="table table-hover">
-						<thead class="table-dark">
-							<tr>
-								<th style="width: 20%">Event</th>
-								<th style="width: 20%">Phase</th>
-								<th style="width: 30%">Event Detail</th>
-								<th style="width: 30%">Use Case</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td><code>dragStart</code></td>
-								<td>Start</td>
-								<td><code>{'{'} draggedNode, originalIndex {'}'}</code></td>
-								<td>Initialize drag operation, show UI feedback</td>
-							</tr>
-							<tr>
-								<td><code>dragOver</code></td>
-								<td>During</td>
-								<td><code>{'{'} draggedNode, targetNode, position {'}'}</code></td>
-								<td>Validate drop target, show drop zones</td>
-							</tr>
-							<tr>
-								<td><code>dragEnter</code></td>
-								<td>During</td>
-								<td><code>{'{'} draggedNode, targetNode {'}'}</code></td>
-								<td>Highlight valid drop targets</td>
-							</tr>
-							<tr>
-								<td><code>dragLeave</code></td>
-								<td>During</td>
-								<td><code>{'{'} draggedNode, targetNode {'}'}</code></td>
-								<td>Remove drop target highlights</td>
-							</tr>
-							<tr>
-								<td><code>drop</code></td>
-								<td>End</td>
-								<td><code>{'{'} draggedNode, targetNode, newIndex, position {'}'}</code></td>
-								<td>Execute the actual move operation</td>
-							</tr>
-							<tr>
-								<td><code>dragEnd</code></td>
-								<td>End</td>
-								<td><code>{'{'} draggedNode, success, canceled {'}'}</code></td>
-								<td>Clean up drag UI, update state</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			{/snippet}
-
-			{#snippet controlsContent()}
-				<CodeBlock
-					codeContent={`<script>
-  let draggedItem = null;
-  let dragIndicator = '';
-
-  function handleDragStart(event) {
-    const { draggedNode } = event.detail;
-    draggedItem = draggedNode;
-    dragIndicator = \`Dragging: \${draggedNode.data.name}\`;
-
-    // Add visual feedback
-    document.body.style.cursor = 'grabbing';
-  }
-
-  function handleDragOver(event) {
-    const { draggedNode, targetNode, position } = event.detail;
-
-    // Custom validation logic
-    if (targetNode.data.type === 'file' && position === 'inside') {
-      event.preventDefault(); // Prevent drop
-      return false;
-    }
-
-    // Show drop indicator
-    updateDropIndicator(targetNode, position);
-  }
-
-  function handleDrop(event) {
-    const { draggedNode, targetNode, newIndex, position } = event.detail;
-
-    // Update your data structure
-    updateTreeData(draggedNode, targetNode, position);
-
-    // Sync with backend
-    saveMoveOperation({
-      itemId: draggedNode.id,
-      newParentId: targetNode.id,
-      newIndex: newIndex,
-      operation: position
-    });
-  }
-
-  function handleDragEnd(event) {
-    const { success, canceled } = event.detail;
-
-    // Clean up UI
-    document.body.style.cursor = '';
-    dragIndicator = '';
-    clearDropIndicators();
-
-    if (success) {
-      showSuccessMessage('Item moved successfully');
-    } else if (canceled) {
-      showInfoMessage('Move operation canceled');
-    }
-  }
-
-  // Drag validation callback
-  function validateDrag(draggedNode, targetNode, position) {
-    // Prevent dropping files into files
-    if (targetNode.data.type === 'file' && position === 'inside') {
-      return false;
-    }
-
-    // Check permissions
-    return draggedNode.data.canMove && targetNode.data.canAcceptDrops;
-  }
-</script>
-
-<Tree
-  treeId="api-events-drag"
+  treeId="my-tree"
   data={treeData}
   idMember="id"
   pathMember="path"
   displayValueMember="name"
   isDragAndDropEnabled={true}
-  dragValidationCallback={validateDrag}
-  on:dragStart={handleDragStart}
-  on:dragOver={handleDragOver}
-  on:drop={handleDrop}
-  on:dragEnd={handleDragEnd}
+  onNodeClicked={handleNodeClicked}
+  onNodeDragStart={handleDragStart}
+  onNodeDragOver={handleDragOver}
 />`}
 					languageType="svelte"
-					titleText="Drag & Drop Events"
+					titleText="Callback Props Usage"
 				/>
 			{/snippet}
 
 			{#snippet descriptionContent()}
 				<div class="prose">
-					<h6>🎯 Drag Operation Flow</h6>
-					<ol>
-						<li><strong>dragStart:</strong> User begins dragging</li>
-						<li><strong>dragOver/dragEnter:</strong> Hovering over targets</li>
-						<li><strong>drop:</strong> User releases on valid target</li>
-						<li><strong>dragEnd:</strong> Operation completes</li>
-					</ol>
+					<h6>🎯 LTreeNode Structure</h6>
+					<p>All callbacks receive <code>LTreeNode&lt;T&gt;</code> objects with:</p>
+					<ul>
+						<li><code>path</code> - Node's hierarchical path</li>
+						<li><code>data</code> - Your original data object</li>
+						<li><code>children</code> - Child nodes map</li>
+						<li><code>isExpanded</code> - Expansion state</li>
+						<li><code>isSelected</code> - Selection state</li>
+					</ul>
 
-					<h6>✅ Validation System</h6>
-					<p>Use <code>dragValidationCallback</code> to implement business rules and prevent invalid drops.</p>
+					<h6>🔄 Svelte 4 Migration</h6>
+					<p>Replace <code>on:nodeClick</code> with <code>onNodeClicked</code>. The callback receives the node directly, not a CustomEvent.</p>
 
-					<h6>🎨 Visual Feedback</h6>
-					<p>Events provide hooks for custom drag indicators, drop zones, and animation feedback.</p>
-
-					<h6>💾 Data Persistence</h6>
-					<p>The <code>drop</code> event is the ideal place to update your data and sync with backends.</p>
+					<h6>⚡ Performance</h6>
+					<ul>
+						<li>Callbacks are invoked synchronously</li>
+						<li>Keep handlers lightweight</li>
+						<li>Debounce expensive operations</li>
+					</ul>
 				</div>
 			{/snippet}
 		</ShowcaseSection>
 
-		<!-- 🔍 Search Events Section -->
+		<!-- 🤏 onNodeDrop Deep Dive Section -->
 		<ShowcaseSection
-			titleText="🔍 Search Events"
-			subtitleText="Events fired during search operations with result details"
-			demoColumnTitle="Search Event Reference"
-			controlsColumnTitle="Search Implementation"
-			descriptionColumnTitle="Search Integration">
+			titleText="EV03 🤏 onNodeDrop Deep Dive (v4.5.0+)"
+			subtitleText="Extended drop callback with position and operation support"
+			demoColumnTitle="Full Signature"
+			controlsColumnTitle="Implementation Examples"
+			descriptionColumnTitle="Drop Handling Guide">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
 					<table class="table table-hover">
 						<thead class="table-dark">
 							<tr>
-								<th style="width: 25%">Event</th>
-								<th style="width: 20%">Timing</th>
-								<th style="width: 35%">Event Detail</th>
-								<th style="width: 20%">Purpose</th>
+								<th style="width: 20%">Parameter</th>
+								<th style="width: 35%">Type</th>
+								<th style="width: 45%">Description</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
-								<td><code>searchStart</code></td>
-								<td>Before search</td>
-								<td><code>{'{'} query, timestamp {'}'}</code></td>
-								<td>Show loading state</td>
+								<td><code>dropNode</code></td>
+								<td><code>LTreeNode&lt;T&gt; | null</code></td>
+								<td>Target node, or <code>null</code> for root/empty tree drops</td>
 							</tr>
 							<tr>
-								<td><code>searchResult</code></td>
-								<td>After search</td>
-								<td><code>{'{'} query, results, total, duration {'}'}</code></td>
-								<td>Process search results</td>
+								<td><code>draggedNode</code></td>
+								<td><code>LTreeNode&lt;T&gt;</code></td>
+								<td>The node being dragged</td>
+							</tr>
+							<tr class="table-success">
+								<td><code>position</code></td>
+								<td><code>'above' | 'below' | 'child'</code></td>
+								<td><strong>NEW:</strong> Where to place relative to target</td>
 							</tr>
 							<tr>
-								<td><code>searchClear</code></td>
-								<td>On clear</td>
-								<td><code>{'{'} previousQuery, clearedResults {'}'}</code></td>
-								<td>Reset search state</td>
+								<td><code>event</code></td>
+								<td><code>DragEvent | TouchEvent</code></td>
+								<td>Original browser event (supports touch)</td>
 							</tr>
-							<tr>
-								<td><code>searchError</code></td>
-								<td>On error</td>
-								<td><code>{'{'} query, error, timestamp {'}'}</code></td>
-								<td>Handle search errors</td>
+							<tr class="table-success">
+								<td><code>operation</code></td>
+								<td><code>'move' | 'copy'</code></td>
+								<td><strong>NEW:</strong> Ctrl+drag = copy operation</td>
 							</tr>
 						</tbody>
 					</table>
+				</div>
+
+				<div class="alert alert-warning mt-3">
+					<h6 class="alert-heading">Breaking Change in v4.5.0</h6>
+					<p class="mb-0">The <code>onNodeDrop</code> signature changed from <code>(dropNode, draggedNode, event)</code> to include <code>position</code> and <code>operation</code> parameters.</p>
 				</div>
 			{/snippet}
 
 			{#snippet controlsContent()}
 				<CodeBlock
-					codeContent={`<script>
-  let searchQuery = '';
-  let searchResults = [];
-  let isSearching = false;
-  let searchStats = { total: 0, duration: 0 };
+					codeContent={`<script lang="ts">
+  import { Tree, type LTreeNode } from '@keenmate/svelte-treeview';
 
-  function handleSearchStart(event) {
-    const { query } = event.detail;
-    isSearching = true;
-    searchResults = [];
+  type DropPosition = 'above' | 'below' | 'child';
+  type DropOperation = 'move' | 'copy';
 
-    // Show loading indicator
-    showSearchLoader(true);
-
-    // Track search analytics
-    trackSearchEvent('search_start', { query });
-  }
-
-  function handleSearchResult(event) {
-    const { query, results, total, duration } = event.detail;
-
-    isSearching = false;
-    searchResults = results;
-    searchStats = { total, duration };
-
-    // Hide loading indicator
-    showSearchLoader(false);
-
-    // Update search result UI
-    updateSearchResultsDisplay(results);
-
-    // Track search completion
-    trackSearchEvent('search_complete', {
-      query,
-      resultCount: total,
-      duration
-    });
-
-    // Auto-expand parents of found items
-    if (results.length > 0) {
-      expandParentsOfResults(results);
+  // v4.5.0+ onNodeDrop signature
+  function handleNodeDrop(
+    dropNode: LTreeNode<MyData> | null,
+    draggedNode: LTreeNode<MyData>,
+    position: DropPosition,
+    event: DragEvent | TouchEvent,
+    operation: DropOperation
+  ) {
+    // Handle root-level drops (empty tree or root zone)
+    if (!dropNode) {
+      console.log('Dropped at root level');
+      moveToRoot(draggedNode, operation);
+      return;
     }
-  }
 
-  function handleSearchClear(event) {
-    const { previousQuery, clearedResults } = event.detail;
+    // Calculate new path based on position
+    let newParentPath: string;
+    let sortOrder: number;
 
-    searchResults = [];
-    searchStats = { total: 0, duration: 0 };
-    isSearching = false;
+    switch (position) {
+      case 'above':
+        newParentPath = dropNode.parentPath ?? '';
+        sortOrder = (dropNode.data?.sortOrder ?? 10) - 5;
+        break;
+      case 'below':
+        newParentPath = dropNode.parentPath ?? '';
+        sortOrder = (dropNode.data?.sortOrder ?? 10) + 5;
+        break;
+      case 'child':
+        newParentPath = dropNode.path;
+        sortOrder = 10; // First child
+        break;
+    }
 
-    // Reset tree expansion state
-    resetTreeExpansion();
-
-    // Clear search highlights
-    clearSearchHighlights();
-  }
-
-  function handleSearchError(event) {
-    const { query, error } = event.detail;
-
-    isSearching = false;
-
-    // Show error message to user
-    showErrorMessage(\`Search failed: \${error.message}\`);
-
-    // Log error for debugging
-    console.error('Search error:', error);
-
-    // Track search errors
-    trackSearchEvent('search_error', { query, error: error.message });
-  }
-
-  // Custom search value extractor
-  function getSearchValue(node) {
-    // Include name, type, and custom properties in search
-    return \`\${node.data.name} \${node.data.type} \${node.data.tags?.join(' ') || ''}\`.toLowerCase();
+    // Handle copy vs move
+    if (operation === 'copy') {
+      console.log(\`Copying \${draggedNode.path} to \${newParentPath}\`);
+      copyNode(draggedNode, newParentPath, sortOrder);
+    } else {
+      console.log(\`Moving \${draggedNode.path} to \${newParentPath}\`);
+      moveNode(draggedNode, newParentPath, sortOrder);
+    }
   }
 </script>
 
 <Tree
-  treeId="api-events-search"
+  treeId="my-tree"
   data={treeData}
   idMember="id"
   pathMember="path"
-  displayValueMember="name"
-  searchText={searchQuery}
-  getSearchValueCallback={getSearchValue}
-  on:searchStart={handleSearchStart}
-  on:searchResult={handleSearchResult}
-  on:searchClear={handleSearchClear}
-  on:searchError={handleSearchError}
-/>
-
-<!-- Search UI -->
-<div class="search-container">
-  <input
-    type="text"
-    bind:value={searchQuery}
-    placeholder="Search tree..."
-    class="form-control"
-  />
-
-  {#if isSearching}
-    <div class="search-loading">Searching...</div>
-  {:else if searchResults.length > 0}
-    <div class="search-stats">
-      Found {searchStats.total} results in {searchStats.duration}ms
-    </div>
-  {/if}
-</div>`}
+  isDragAndDropEnabled={true}
+  onNodeDrop={handleNodeDrop}
+/>`}
 					languageType="svelte"
-					titleText="Search Event Handling"
+					titleText="v4.5.0 onNodeDrop Implementation"
 				/>
 			{/snippet}
 
 			{#snippet descriptionContent()}
 				<div class="prose">
-					<h6>🚀 Async Search</h6>
-					<p>Search operations are asynchronous and use FlexSearch for performance. Events provide hooks for loading states.</p>
+					<h6>🎯 Position Values</h6>
+					<ul>
+						<li><code>'above'</code> - Insert as sibling before target</li>
+						<li><code>'below'</code> - Insert as sibling after target</li>
+						<li><code>'child'</code> - Insert as child of target</li>
+					</ul>
 
-					<h6>📊 Search Analytics</h6>
-					<p>Events include timing and result metrics perfect for analytics and performance monitoring.</p>
+					<h6>📋 Operation Types</h6>
+					<ul>
+						<li><code>'move'</code> - Default drag operation</li>
+						<li><code>'copy'</code> - Ctrl+drag or copy drag</li>
+					</ul>
 
-					<h6>🎨 Result Highlighting</h6>
-					<p>Use search events to implement custom highlighting and result navigation.</p>
+					<h6>⚠️ Null dropNode</h6>
+					<p><code>dropNode</code> is <code>null</code> when:</p>
+					<ul>
+						<li>Dropped on empty tree placeholder</li>
+						<li>Dropped on root drop zone</li>
+					</ul>
 
-					<h6>🔧 Custom Search Logic</h6>
-					<p>Implement <code>getSearchValueCallback</code> to customize what data is searchable for each node.</p>
+					<h6>📱 Touch Support</h6>
+					<p>The <code>event</code> can be <code>TouchEvent</code> on mobile devices with long-press drag.</p>
+				</div>
+			{/snippet}
+		</ShowcaseSection>
+
+		<!-- 🔍 Search API Section -->
+		<ShowcaseSection
+			titleText="EV04 🔍 Search API"
+			subtitleText="Search is prop-based, not callback-based - use searchText prop and searchNodes method"
+			demoColumnTitle="Search Props & Methods"
+			controlsColumnTitle="Search Implementation"
+			descriptionColumnTitle="Search Guide">
+
+			{#snippet demoContent()}
+				<div class="table-responsive">
+					<table class="table table-hover">
+						<thead class="table-dark">
+							<tr>
+								<th style="width: 30%">Prop / Method</th>
+								<th style="width: 30%">Type</th>
+								<th style="width: 40%">Description</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><code>searchText</code></td>
+								<td><code>string</code> (bindable)</td>
+								<td>Two-way bound search query - filters tree automatically</td>
+							</tr>
+							<tr>
+								<td><code>shouldUseInternalSearchIndex</code></td>
+								<td><code>boolean</code></td>
+								<td>Enable FlexSearch-based indexing for large trees</td>
+							</tr>
+							<tr>
+								<td><code>searchValueMember</code></td>
+								<td><code>string</code></td>
+								<td>Property name to use for search text</td>
+							</tr>
+							<tr>
+								<td><code>getSearchValueCallback</code></td>
+								<td><code>(data: T) =&gt; string</code></td>
+								<td>Custom function to extract searchable text</td>
+							</tr>
+							<tr class="table-info">
+								<td><code>searchNodes()</code></td>
+								<td><code>(text: string) =&gt; LTreeNode[]</code></td>
+								<td><strong>Method:</strong> Query nodes programmatically</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<div class="alert alert-info mt-3">
+					<h6 class="alert-heading">Note: Prop-Based Search</h6>
+					<p class="mb-0">Unlike drag/drop callbacks, search uses <strong>reactive props</strong>. Bind to <code>searchText</code> and the tree filters automatically. No search events are fired.</p>
+				</div>
+			{/snippet}
+
+			{#snippet controlsContent()}
+				<CodeBlock
+					codeContent={`<script lang="ts">
+  import { Tree } from '@keenmate/svelte-treeview';
+
+  let treeRef: Tree<MyData>;
+  let searchText = $state('');
+
+  // Custom search value extractor
+  function getSearchValue(data: MyData): string {
+    // Include multiple fields in search
+    return [
+      data.name,
+      data.type,
+      data.tags?.join(' ') ?? ''
+    ].join(' ').toLowerCase();
+  }
+
+  // Programmatic search using tree method
+  function findNodes(query: string) {
+    const results = treeRef.searchNodes(query);
+    console.log(\`Found \${results.length} nodes\`);
+    return results;
+  }
+
+  // Clear search
+  function clearSearch() {
+    searchText = '';
+  }
+</script>
+
+<!-- Search input bound to searchText -->
+<input
+  type="text"
+  bind:value={searchText}
+  placeholder="Search tree..."
+  class="form-control"
+/>
+<button onclick={clearSearch}>Clear</button>
+
+<Tree
+  bind:this={treeRef}
+  treeId="my-tree"
+  data={treeData}
+  idMember="id"
+  pathMember="path"
+  displayValueMember="name"
+  bind:searchText
+  shouldUseInternalSearchIndex={true}
+  getSearchValueCallback={getSearchValue}
+/>`}
+					languageType="svelte"
+					titleText="Search Implementation"
+				/>
+			{/snippet}
+
+			{#snippet descriptionContent()}
+				<div class="prose">
+					<h6>🔄 Reactive Filtering</h6>
+					<p>When <code>searchText</code> changes, the tree automatically filters to show matching nodes and their ancestors.</p>
+
+					<h6>🔍 searchNodes() Method</h6>
+					<p>Use <code>treeRef.searchNodes(query)</code> to query nodes without changing the display filter.</p>
+
+					<h6>⚡ FlexSearch Integration</h6>
+					<p>Enable <code>shouldUseInternalSearchIndex</code> for optimized search on large trees using FlexSearch.</p>
+
+					<h6>🎨 Custom Indexing</h6>
+					<p>Use <code>getSearchValueCallback</code> to index multiple fields or apply custom text transformations.</p>
 				</div>
 			{/snippet}
 		</ShowcaseSection>
 
 		<!-- ⚡ Performance & Best Practices Section -->
 		<ShowcaseSection
-			titleText="⚡ Performance & Best Practices"
-			subtitleText="Optimize event handling for large trees and complex applications"
+			titleText="EV05 ⚡ Performance & Best Practices"
+			subtitleText="Optimize callback handling for large trees and complex applications"
 			demoColumnTitle="Best Practices"
-			controlsColumnTitle="Optimization Examples"
+			controlsColumnTitle="Svelte 5 Patterns"
 			descriptionColumnTitle="Performance Guide">
 
 			{#snippet demoContent()}
@@ -730,11 +630,11 @@
 						</div>
 						<div class="card-body">
 							<ul class="mb-0">
-								<li>Use event delegation for multiple trees</li>
-								<li>Debounce expensive operations in handlers</li>
-								<li>Keep event handlers lightweight</li>
-								<li>Use proper cleanup in component unmount</li>
-								<li>Batch DOM updates after multiple events</li>
+								<li>Debounce expensive operations in callbacks</li>
+								<li>Keep callback handlers lightweight</li>
+								<li>Use <code>$effect</code> for reactive side effects</li>
+								<li>Batch state updates with <code>$state</code></li>
+								<li>Use <code>untrack()</code> to avoid reactive loops</li>
 							</ul>
 						</div>
 					</div>
@@ -744,22 +644,22 @@
 						</div>
 						<div class="card-body">
 							<ul class="mb-0">
-								<li>Don't perform heavy computations in handlers</li>
-								<li>Don't make synchronous API calls</li>
-								<li>Don't manipulate DOM directly</li>
-								<li>Don't ignore event timing and order</li>
-								<li>Don't forget to handle edge cases</li>
+								<li>Don't perform heavy computations in callbacks</li>
+								<li>Don't make synchronous API calls in handlers</li>
+								<li>Don't manipulate DOM directly - use reactive state</li>
+								<li>Don't create functions inside templates</li>
+								<li>Don't forget null checks for dropNode</li>
 							</ul>
 						</div>
 					</div>
 					<div class="card">
 						<div class="card-header">
-							<h6 class="mb-0">🔧 Memory Management</h6>
+							<h6 class="mb-0">🔧 Svelte 5 Cleanup</h6>
 						</div>
 						<div class="card-body">
 							<small class="text-muted">
-								Always remove event listeners when components unmount to prevent memory leaks.
-								Use weak references for node caching.
+								Svelte 5 automatically handles cleanup for <code>$effect</code> blocks.
+								Use <code>onDestroy</code> only for non-reactive cleanup like timers.
 							</small>
 						</div>
 					</div>
@@ -768,147 +668,119 @@
 
 			{#snippet controlsContent()}
 				<CodeBlock
-					codeContent={`<script>
-  import { onDestroy } from 'svelte';
+					codeContent={`<script lang="ts">
+  import { onDestroy, untrack } from 'svelte';
+  import { Tree, type LTreeNode } from '@keenmate/svelte-treeview';
 
-  // Debounce helper for expensive operations
-  function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
+  // Debounce helper
+  function debounce<T extends (...args: any[]) => any>(
+    func: T,
+    wait: number
+  ): T {
+    let timeout: ReturnType<typeof setTimeout>;
+    return ((...args) => {
       clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
+      timeout = setTimeout(() => func(...args), wait);
+    }) as T;
   }
 
-  // Batch updates to avoid excessive re-renders
-  let pendingUpdates = [];
-  let updateTimeout;
+  // State using Svelte 5 runes
+  let selectedPath = $state<string | null>(null);
+  let operationLog = $state<string[]>([]);
 
-  function batchUpdate(updateFn) {
-    pendingUpdates.push(updateFn);
-
-    if (updateTimeout) return;
-
-    updateTimeout = setTimeout(() => {
-      const updates = [...pendingUpdates];
-      pendingUpdates = [];
-      updateTimeout = null;
-
-      // Apply all updates at once
-      updates.forEach(update => update());
-    }, 16); // Next animation frame
-  }
-
-  // Optimized event handlers
-  const handleNodeClick = debounce((event) => {
-    // Expensive operation (API call, complex state update)
-    batchUpdate(() => updateNodeState(event.detail));
-  }, 300);
-
-  const handleNodeExpand = (event) => {
-    // Light operation - can run immediately
-    updateLocalState(event.detail);
-  };
-
-  const handleBulkSelection = (event) => {
-    // For multiple selections, batch the updates
-    batchUpdate(() => {
-      event.detail.nodes.forEach(node => {
-        updateSelectionState(node);
-      });
+  // Debounced API call
+  const saveToServer = debounce(async (path: string) => {
+    await fetch('/api/select', {
+      method: 'POST',
+      body: JSON.stringify({ path })
     });
-  };
+  }, 500);
 
-  // Cleanup on component destroy
-  onDestroy(() => {
-    if (updateTimeout) {
-      clearTimeout(updateTimeout);
+  // Lightweight click handler
+  function handleNodeClicked(node: LTreeNode<MyData>) {
+    // Immediate local state update
+    selectedPath = node.path;
+
+    // Debounced expensive operation
+    saveToServer(node.path);
+  }
+
+  // Drop handler with async operation
+  async function handleNodeDrop(
+    dropNode: LTreeNode<MyData> | null,
+    draggedNode: LTreeNode<MyData>,
+    position: 'above' | 'below' | 'child',
+    event: DragEvent | TouchEvent,
+    operation: 'move' | 'copy'
+  ) {
+    // Log operation (using untrack to avoid reactivity)
+    untrack(() => {
+      operationLog = [
+        ...operationLog.slice(-9),
+        \`\${operation}: \${draggedNode.path} → \${dropNode?.path ?? 'root'}\`
+      ];
+    });
+
+    // Async backend sync
+    await fetch('/api/move', {
+      method: 'POST',
+      body: JSON.stringify({
+        source: draggedNode.path,
+        target: dropNode?.path,
+        position,
+        operation
+      })
+    });
+  }
+
+  // Effect for side effects on selection change
+  $effect(() => {
+    if (selectedPath) {
+      console.log('Selection changed:', selectedPath);
     }
-
-    // Clear any pending operations
-    pendingUpdates = [];
-
-    // Remove any global listeners
-    removeGlobalEventListeners();
   });
-
-  // Event delegation pattern for multiple trees
-  function setupEventDelegation() {
-    const container = document.getElementById('tree-container');
-
-    container.addEventListener('tree-event', (event) => {
-      const treeId = event.target.dataset.treeId;
-      const handler = eventHandlers[treeId];
-
-      if (handler) {
-        handler(event);
-      }
-    });
-  }
-
-  // Efficient state management
-  const treeState = new Map();
-
-  function updateTreeState(nodeId, changes) {
-    const current = treeState.get(nodeId) || {};
-    treeState.set(nodeId, { ...current, ...changes });
-
-    // Notify subscribers efficiently
-    notifyStateChange(nodeId, changes);
-  }
 </script>
 
-<!-- Optimized Tree Configuration -->
 <Tree
-  treeId="api-events-optimized"
+  treeId="optimized-tree"
   data={treeData}
   idMember="id"
   pathMember="path"
   displayValueMember="name"
-
-  <!-- Use debounced handlers for expensive operations -->
-  on:nodeClick={handleNodeClick}
-
-  <!-- Immediate handlers for light operations -->
-  on:nodeExpand={handleNodeExpand}
-
-  <!-- Custom handlers for bulk operations -->
-  on:bulkSelect={handleBulkSelection}
+  isDragAndDropEnabled={true}
+  onNodeClicked={handleNodeClicked}
+  onNodeDrop={handleNodeDrop}
 />`}
 					languageType="svelte"
-					titleText="Performance Optimization"
+					titleText="Svelte 5 Best Practices"
 				/>
 			{/snippet}
 
 			{#snippet descriptionContent()}
 				<div class="prose">
-					<h6>⚡ Event Performance</h6>
+					<h6>⚡ Callback Performance</h6>
 					<ul>
-						<li>Events are optimized internally with throttling</li>
-						<li>Use debouncing for expensive handler operations</li>
-						<li>Batch DOM updates to avoid layout thrashing</li>
+						<li>Callbacks run synchronously - keep them fast</li>
+						<li>Debounce API calls and heavy operations</li>
+						<li>Use <code>untrack()</code> for non-reactive updates</li>
 					</ul>
 
-					<h6>🧠 Memory Management</h6>
+					<h6>🔄 Svelte 5 Runes</h6>
 					<ul>
-						<li>Remove event listeners on component cleanup</li>
-						<li>Use weak references for caching</li>
-						<li>Clear timeouts and intervals</li>
+						<li><code>$state</code> for reactive local state</li>
+						<li><code>$effect</code> for side effects</li>
+						<li><code>$derived</code> for computed values</li>
 					</ul>
 
 					<h6>📊 Large Trees</h6>
 					<ul>
-						<li>Event delegation patterns for multiple trees</li>
-						<li>Lazy loading based on expand events</li>
-						<li>Virtual scrolling for huge datasets</li>
+						<li>Enable <code>shouldUseInternalSearchIndex</code></li>
+						<li>Use <code>expandLevel</code> to limit initial render</li>
+						<li>Lazy load children on expand if needed</li>
 					</ul>
 
-					<h6>🔧 Testing Events</h6>
-					<p>Use synthetic events for testing event handlers without user interaction.</p>
+					<h6>🧪 Testing</h6>
+					<p>Test callbacks by calling them directly with mock <code>LTreeNode</code> objects.</p>
 				</div>
 			{/snippet}
 		</ShowcaseSection>

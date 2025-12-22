@@ -98,7 +98,7 @@
 
 		<!-- 🎛️ Interactive Demo Section -->
 		<ShowcaseSection
-			titleText="🎛️ Interactive Property Explorer"
+			titleText="PR01 🎛️ Interactive Property Explorer"
 			subtitleText="Experiment with different property combinations to see their effects"
 			demoColumnTitle="Live Tree Preview"
 			controlsColumnTitle="Property Controls"
@@ -201,7 +201,7 @@
 
 		<!-- 🔧 Core Properties Section -->
 		<ShowcaseSection
-			titleText="🔧 Core Properties"
+			titleText="PR02 🔧 Core Properties"
 			subtitleText="Essential properties that define tree behavior and data structure"
 			demoColumnTitle="Property Details"
 			controlsColumnTitle="Usage Examples"
@@ -330,7 +330,7 @@ const treeData = [
 
 		<!-- 🎨 Styling & Display Properties Section -->
 		<ShowcaseSection
-			titleText="🎨 Styling & Display Properties"
+			titleText="PR03 🎨 Styling & Display Properties"
 			subtitleText="Properties that control visual appearance and user interface elements"
 			demoColumnTitle="Styling Properties"
 			controlsColumnTitle="Styling Examples"
@@ -460,7 +460,7 @@ const treeData = [
 
 		<!-- 🔄 Interaction Properties Section -->
 		<ShowcaseSection
-			titleText="🔄 Interaction Properties"
+			titleText="PR04 🔄 Interaction Properties"
 			subtitleText="Properties that control drag & drop, search, and user interactions"
 			demoColumnTitle="Interaction Properties"
 			controlsColumnTitle="Advanced Usage"
@@ -513,6 +513,24 @@ const treeData = [
 								<td><code>boolean</code></td>
 								<td><code>true</code></td>
 								<td>Whether clicking a node should select it</td>
+							</tr>
+							<tr>
+								<td><code>dragDropMode</code></td>
+								<td><code>string</code></td>
+								<td><code>'both'</code></td>
+								<td>Controls drag-drop operations: 'none' | 'self' | 'cross' | 'both'. 'self' = same tree only, 'cross' = between trees only</td>
+							</tr>
+							<tr>
+								<td><code>orderMember</code></td>
+								<td><code>string</code></td>
+								<td><code>null</code></td>
+								<td>Property name containing sort order value for sibling ordering (e.g., "sortOrder")</td>
+							</tr>
+							<tr>
+								<td><code>dragOverNodeClass</code></td>
+								<td><code>string</code></td>
+								<td><code>""</code></td>
+								<td>CSS class for drag-over visual feedback. Built-in: 'ltree-dragover-highlight', 'ltree-dragover-glow'</td>
 							</tr>
 						</tbody>
 					</table>
@@ -587,6 +605,279 @@ const treeData = [
 
 					<h6>⚡ Performance Tips</h6>
 					<p>Validation and search callbacks are called frequently - keep them lightweight and avoid expensive operations.</p>
+				</div>
+			{/snippet}
+		</ShowcaseSection>
+
+		<!-- 🎯 Drop Zone Properties Section (v4.5.0+) -->
+		<ShowcaseSection
+			titleText="PR05 🎯 Drop Zone Properties (v4.5.0+)"
+			subtitleText="Configure visual drop indicators and positioning for drag-drop operations"
+			demoColumnTitle="Drop Zone Properties"
+			controlsColumnTitle="Usage Examples"
+			descriptionColumnTitle="Configuration Guide">
+
+			{#snippet demoContent()}
+				<div class="table-responsive">
+					<table class="table table-hover">
+						<thead class="table-dark">
+							<tr>
+								<th style="width: 25%">Property</th>
+								<th style="width: 20%">Type</th>
+								<th style="width: 15%">Default</th>
+								<th style="width: 40%">Description</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><code>dropZoneLayout</code></td>
+								<td><code>string</code></td>
+								<td><code>'around'</code></td>
+								<td>Drop zone arrangement: 'around' | 'above' | 'below' | 'wave' | 'wave2'</td>
+							</tr>
+							<tr>
+								<td><code>dropZoneStart</code></td>
+								<td><code>number | string</code></td>
+								<td><code>33</code></td>
+								<td>Horizontal start position (number = %, string = CSS value like "50px")</td>
+							</tr>
+							<tr>
+								<td><code>dropZoneMaxWidth</code></td>
+								<td><code>number</code></td>
+								<td><code>120</code></td>
+								<td>Maximum width in pixels for wave layouts</td>
+							</tr>
+							<tr>
+								<td><code>isLoading</code></td>
+								<td><code>boolean</code></td>
+								<td><code>false</code></td>
+								<td>Shows a loading overlay on the tree during async operations</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<h6 class="mt-4">Drop Zone Layouts</h6>
+				<ul class="small">
+					<li><code>'around'</code> - Above zone on top, Below/Child zones on bottom (default)</li>
+					<li><code>'above'</code> - All 3 zones in a horizontal row above the node</li>
+					<li><code>'below'</code> - All 3 zones in a horizontal row below the node</li>
+					<li><code>'wave'</code> - Zones stacked vertically with fixed width</li>
+					<li><code>'wave2'</code> - Diagonal wave pattern with offset</li>
+				</ul>
+			{/snippet}
+
+			{#snippet controlsContent()}
+				<CodeBlock
+					codeContent={`<!-- Drop zone configuration -->
+<Tree
+  treeId="drop-zones-demo"
+  data={treeData}
+  idMember="id"
+  pathMember="path"
+  displayValueMember="name"
+  isDragAndDropEnabled={true}
+  dragDropMode="both"
+  dropZoneLayout="around"
+  dropZoneStart={33}
+  dropZoneMaxWidth={120}
+  orderMember="sortOrder"
+  dragOverNodeClass="ltree-dragover-glow"
+  isLoading={isSaving}
+  onNodeDrop={handleDrop}
+/>
+
+<script>
+  let isSaving = false;
+
+  async function handleDrop(dropNode, draggedNode, position, event) {
+    // position is 'above', 'below', or 'child'
+    // dropNode can be null for empty tree drops
+
+    isSaving = true;
+    try {
+      await saveToDatabase({
+        nodeId: draggedNode.data.id,
+        targetId: dropNode?.data?.id || null,
+        position: position
+      });
+    } finally {
+      isSaving = false;
+    }
+  }
+</script>`}
+					languageType="svelte"
+					titleText="Drop Zone Configuration"
+				/>
+			{/snippet}
+
+			{#snippet descriptionContent()}
+				<div class="prose">
+					<h6>🎯 Drop Positions</h6>
+					<p>When dropping a node, the <code>position</code> parameter indicates:</p>
+					<ul>
+						<li><code>'above'</code> - Insert as sibling before target</li>
+						<li><code>'below'</code> - Insert as sibling after target</li>
+						<li><code>'child'</code> - Insert as child of target</li>
+					</ul>
+
+					<h6>📱 Touch Support</h6>
+					<p>Touch drag-drop is enabled by default:</p>
+					<ul>
+						<li>Long-press (300ms) initiates drag</li>
+						<li>Ghost element follows finger</li>
+						<li>Haptic feedback on drag start</li>
+					</ul>
+
+					<h6>⏳ Loading State</h6>
+					<p>Use <code>isLoading</code> to show a visual overlay during async operations like database saves.</p>
+
+					<h6>📦 Empty Tree Drops</h6>
+					<p>Use the <code>dropPlaceholder</code> snippet to show a drop zone in empty trees.</p>
+				</div>
+			{/snippet}
+		</ShowcaseSection>
+
+		<!-- 📝 Callback Properties Section (v4.5.0+) -->
+		<ShowcaseSection
+			titleText="📝 Callback Properties (Svelte 5)"
+			subtitleText="Event callbacks using Svelte 5 prop syntax instead of on:event dispatchers"
+			demoColumnTitle="Callback Properties"
+			controlsColumnTitle="Usage Examples"
+			descriptionColumnTitle="Migration Guide">
+
+			{#snippet demoContent()}
+				<div class="table-responsive">
+					<table class="table table-hover">
+						<thead class="table-dark">
+							<tr>
+								<th style="width: 25%">Property</th>
+								<th style="width: 35%">Signature</th>
+								<th style="width: 40%">Description</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><code>onNodeClicked</code></td>
+								<td><code>(node: LTreeNode) => void</code></td>
+								<td>Called when a node is clicked</td>
+							</tr>
+							<tr>
+								<td><code>onNodeDragStart</code></td>
+								<td><code>(node, event) => void</code></td>
+								<td>Called when drag operation begins</td>
+							</tr>
+							<tr class="table-info">
+								<td><code>onNodeDrop</code></td>
+								<td><code>(dropNode, draggedNode, position, event) => void</code></td>
+								<td>Called when node is dropped. <code>position</code> is 'above'|'below'|'child'. <code>dropNode</code> can be null.</td>
+							</tr>
+							<tr>
+								<td><code>contextMenuCallback</code></td>
+								<td><code>(node, closeMenu) => ContextMenuItem[]</code></td>
+								<td>Returns context menu items for a node</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="alert alert-info mt-3">
+					<strong>Note:</strong> Svelte 5 uses callback props instead of event dispatchers.
+					Use <code>onNodeClicked={'{'}handler{'}'}</code> not <code>on:nodeClick={'{'}handler{'}'}</code>.
+				</div>
+			{/snippet}
+
+			{#snippet controlsContent()}
+				<CodeBlock
+					codeContent={`<script>
+  import { Tree } from '@keenmate/svelte-treeview';
+
+  // Node click handler
+  function handleNodeClick(node) {
+    console.log('Clicked:', node.data.name);
+    selectedNode = node;
+  }
+
+  // Drop handler with position
+  function handleDrop(dropNode, draggedNode, position, event) {
+    console.log(\`Dropped \${draggedNode.data.name} \${position} \${dropNode?.data?.name || 'root'}\`);
+
+    // position: 'above' | 'below' | 'child'
+    // dropNode: null when dropping to empty tree
+
+    if (position === 'child') {
+      // Add as child of dropNode
+      moveNodeAsChild(draggedNode, dropNode);
+    } else {
+      // Add as sibling above/below
+      moveNodeAsSibling(draggedNode, dropNode, position);
+    }
+  }
+
+  // Context menu
+  function getContextMenu(node, closeMenu) {
+    return [
+      { title: 'Edit', icon: '✏️', callback: () => editNode(node) },
+      { title: 'Delete', icon: '🗑️', callback: () => deleteNode(node) },
+      { isDivider: true },
+      { title: 'Cancel', callback: closeMenu }
+    ];
+  }
+</script>
+
+<Tree
+  treeId="callbacks-demo"
+  data={treeData}
+  idMember="id"
+  pathMember="path"
+  displayValueMember="name"
+  onNodeClicked={handleNodeClick}
+  onNodeDrop={handleDrop}
+  contextMenuCallback={getContextMenu}
+/>`}
+					languageType="svelte"
+					titleText="Callback Props (Svelte 5)"
+				/>
+			{/snippet}
+
+			{#snippet descriptionContent()}
+				<div class="prose">
+					<h6>🔄 Svelte 4 → Svelte 5 Migration</h6>
+					<table class="table table-sm">
+						<thead>
+							<tr>
+								<th>Svelte 4</th>
+								<th>Svelte 5</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><code>on:nodeClick</code></td>
+								<td><code>onNodeClicked</code></td>
+							</tr>
+							<tr>
+								<td><code>on:drop</code></td>
+								<td><code>onNodeDrop</code></td>
+							</tr>
+							<tr>
+								<td><code>on:dragStart</code></td>
+								<td><code>onNodeDragStart</code></td>
+							</tr>
+						</tbody>
+					</table>
+
+					<h6>⚠️ Breaking Change: onNodeDrop</h6>
+					<p>The drop callback now includes <code>position</code> and <code>operation</code> parameters:</p>
+					<ul>
+						<li>Before: <code>(dropNode, draggedNode, event)</code></li>
+						<li>After: <code>(dropNode, draggedNode, position, event, operation)</code></li>
+					</ul>
+
+					<h6>🎯 Null dropNode</h6>
+					<p><code>dropNode</code> is <code>null</code> when dropping:</p>
+					<ul>
+						<li>Into an empty tree (via dropPlaceholder)</li>
+						<li>Into the root drop zone</li>
+					</ul>
 				</div>
 			{/snippet}
 		</ShowcaseSection>
