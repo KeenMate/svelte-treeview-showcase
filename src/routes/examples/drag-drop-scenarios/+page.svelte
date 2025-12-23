@@ -12,7 +12,7 @@
 		sortOrder: number;
 	};
 
-	type Scenario = 'A' | 'B' | 'C' | 'D' | 'E';
+	type Scenario = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
 
 	// Active scenario tab
 	let activeTab = $state<Scenario>('A');
@@ -58,6 +58,14 @@
 			useCase: 'Wizard flows, draft mode, offline-first apps, or when you want users to finalize before committing.',
 			events: 'onNodeDrop (handle but do NOT save)',
 			yourCode: 'Build tree with copyNodeWithDescendants()/addNode()\nTrack unsaved count\nOn save: getAllData() → batch save to DB'
+		},
+		F: {
+			title: 'Partial Branch Update (Lazy Load)',
+			description: 'Refresh or replace a specific branch without reloading the entire tree. Useful for lazy-loading children or syncing a subtree with the server.',
+			keyFeature: 'getChildren() + applyChanges()',
+			useCase: 'Lazy-loading folder contents, refreshing a specific folder from server, replacing outdated subtree data.',
+			events: 'onNodeClicked (to trigger load) or custom refresh button',
+			yourCode: '1. getChildren(path) to get existing children\n2. Fetch new children from server\n3. Build changes array (delete old + create new)\n4. applyChanges(changes) for single re-render'
 		}
 	};
 
@@ -97,28 +105,33 @@
 	let nextIdC = $state(3000);
 	let nextIdD = $state(4000);
 	let nextIdE = $state(5000);
+	let nextIdF = $state(6000);
 
 	let targetDataA = $state<ScenarioNode[]>(createInitialTargetData());
 	let targetDataB = $state<ScenarioNode[]>(createInitialTargetData());
 	let targetDataC = $state<ScenarioNode[]>(createInitialTargetData());
 	let targetDataD = $state<ScenarioNode[]>([]); // Empty for scenario D
 	let targetDataE = $state<ScenarioNode[]>([]); // Empty for scenario E
+	let targetDataF = $state<ScenarioNode[]>(createInitialTargetData());
 
 	let mockDatabaseA = $state<ScenarioNode[]>([...createInitialTargetData()]);
 	let mockDatabaseB = $state<ScenarioNode[]>([...createInitialTargetData()]);
 	let mockDatabaseC = $state<ScenarioNode[]>([...createInitialTargetData()]);
 	let mockDatabaseD = $state<ScenarioNode[]>([]);
 	let mockDatabaseE = $state<ScenarioNode[]>([]);
+	let mockDatabaseF = $state<ScenarioNode[]>([...createInitialTargetData()]);
 
 	let activityLogA = $state<string[]>([]);
 	let activityLogB = $state<string[]>([]);
 	let activityLogC = $state<string[]>([]);
 	let activityLogD = $state<string[]>([]);
 	let activityLogE = $state<string[]>([]);
+	let activityLogF = $state<string[]>([]);
 
 	let selectedNodeC = $state<LTreeNode<ScenarioNode> | null>(null);
 	let editNameC = $state('');
 	let unsavedCountE = $state(0);
+	let selectedNodeF = $state<LTreeNode<ScenarioNode> | null>(null);
 
 	// Loading state per scenario
 	let isLoadingA = $state(false);
@@ -126,6 +139,7 @@
 	let isLoadingC = $state(false);
 	let isLoadingD = $state(false);
 	let isLoadingE = $state(false);
+	let isLoadingF = $state(false);
 
 	// Tree refs
 	let treeRefA: Tree<ScenarioNode>;
@@ -133,6 +147,7 @@
 	let treeRefC: Tree<ScenarioNode>;
 	let treeRefD: Tree<ScenarioNode>;
 	let treeRefE: Tree<ScenarioNode>;
+	let treeRefF: Tree<ScenarioNode>;
 
 	// Sort function
 	function sortByOrder(items: LTreeNode<ScenarioNode>[]) {
@@ -159,6 +174,9 @@
 	}
 	function addLogE(message: string) {
 		activityLogE = [...activityLogE.slice(-19), `${new Date().toLocaleTimeString()} - ${message}`];
+	}
+	function addLogF(message: string) {
+		activityLogF = [...activityLogF.slice(-19), `${new Date().toLocaleTimeString()} - ${message}`];
 	}
 
 	// Simulated DB operations with random latency (50-450ms)
@@ -558,6 +576,125 @@
 		addLogE('Cleared tree (database was already empty)');
 	}
 
+	// ==================== SCENARIO F: Partial Branch Update ====================
+	// Simulated server data for lazy loading - pretend these are fetched from server
+	function getServerChildrenForFolder(folderPath: string): ScenarioNode[] {
+		// Simulate server returning fresh children for a folder
+		const timestamp = Date.now();
+		const baseSortOrder = 10;
+		return [
+			{ id: nextIdF++, path: '', name: `Fresh Item ${timestamp % 1000}`, icon: '📄', sortOrder: baseSortOrder },
+			{ id: nextIdF++, path: '', name: `New File ${(timestamp + 1) % 1000}`, icon: '📝', sortOrder: baseSortOrder + 10 },
+			{ id: nextIdF++, path: '', name: `Updated Doc ${(timestamp + 2) % 1000}`, icon: '📋', sortOrder: baseSortOrder + 20 }
+		];
+	}
+
+	function onNodeClickF(node: LTreeNode<ScenarioNode>) {
+		selectedNodeF = node;
+	}
+
+	async function refreshBranchF() {
+		if (!selectedNodeF) {
+			addLogF('Select a folder to refresh its children');
+			return;
+		}
+
+		const folderPath = selectedNodeF.path;
+		const folderName = selectedNodeF.data?.name;
+
+		// Check if it's a folder (has children or is expandable)
+		if (!selectedNodeF.data?.icon?.includes('📁')) {
+			addLogF(`"${folderName}" is not a folder - select a folder to refresh`);
+			return;
+		}
+
+		isLoadingF = true;
+		addLogF(`Refreshing children of "${folderName}" at path ${folderPath}...`);
+
+		// 1. Get current children
+		const children = treeRefF.getChildren(folderPath);
+		addLogF(`Found ${children.length} existing children`);
+
+		// 2. Fetch new children from "server"
+		const delay = await simulateLatency();
+		const newChildren = getServerChildrenForFolder(folderPath);
+		addLogF(`Fetched ${newChildren.length} new children from server (${delay}ms)`);
+
+		// 3. Build changes array: delete old + create new
+		type TreeChange = { operation: 'delete'; path: string } | { operation: 'create'; parentPath: string; data: ScenarioNode };
+		const changes: TreeChange[] = [
+			// Delete existing children
+			...children.map(c => ({ operation: 'delete' as const, path: c.path })),
+			// Create new children
+			...newChildren.map(c => ({ operation: 'create' as const, parentPath: folderPath, data: c }))
+		];
+
+		addLogF(`Applying ${changes.length} changes (${children.length} deletes + ${newChildren.length} creates)...`);
+
+		// 4. Apply all changes in single call (single re-render!)
+		const result = treeRefF.applyChanges(changes);
+		addLogF(`applyChanges: ${result.successful} successful, ${result.failed.length} failed`);
+
+		// Update mock DB
+		mockDatabaseF = [...mockDatabaseF.filter(n => !n.path.startsWith(folderPath + '.')), ...treeRefF.getChildren(folderPath).map(c => c.data!)];
+
+		// 5. Expand the folder to show new children
+		treeRefF.expandAll(folderPath);
+
+		isLoadingF = false;
+	}
+
+	async function lazyLoadChildrenF() {
+		if (!selectedNodeF) {
+			addLogF('Select a folder to lazy-load children');
+			return;
+		}
+
+		const folderPath = selectedNodeF.path;
+		const folderName = selectedNodeF.data?.name;
+
+		if (!selectedNodeF.data?.icon?.includes('📁')) {
+			addLogF(`"${folderName}" is not a folder`);
+			return;
+		}
+
+		// Check if already has children
+		const existingChildren = treeRefF.getChildren(folderPath);
+		if (existingChildren.length > 0) {
+			addLogF(`"${folderName}" already has ${existingChildren.length} children - use Refresh Branch instead`);
+			return;
+		}
+
+		isLoadingF = true;
+		addLogF(`Lazy-loading children for "${folderName}"...`);
+
+		const delay = await simulateLatency();
+		const newChildren = getServerChildrenForFolder(folderPath);
+		addLogF(`Fetched ${newChildren.length} children from server (${delay}ms)`);
+
+		// Build changes array: create all new children
+		const changes = newChildren.map(c => ({ operation: 'create' as const, parentPath: folderPath, data: c }));
+
+		// Apply all creates in single call
+		const result = treeRefF.applyChanges(changes);
+		addLogF(`applyChanges: ${result.successful} created, ${result.failed.length} failed`);
+
+		// Update mock DB
+		mockDatabaseF = [...mockDatabaseF, ...treeRefF.getChildren(folderPath).map(c => c.data!)];
+
+		treeRefF.expandAll(folderPath);
+		isLoadingF = false;
+	}
+
+	function resetF() {
+		targetDataF = [...createInitialTargetData()];
+		mockDatabaseF = [...createInitialTargetData()];
+		activityLogF = [];
+		nextIdF = 6000;
+		selectedNodeF = null;
+		addLogF('Reset to initial state');
+	}
+
 	// Get current scenario's activity log
 	function getCurrentLog(): string[] {
 		switch (activeTab) {
@@ -566,6 +703,7 @@
 			case 'C': return activityLogC;
 			case 'D': return activityLogD;
 			case 'E': return activityLogE;
+			case 'F': return activityLogF;
 		}
 	}
 
@@ -577,6 +715,7 @@
 			case 'C': return mockDatabaseC;
 			case 'D': return mockDatabaseD;
 			case 'E': return mockDatabaseE;
+			case 'F': return mockDatabaseF;
 		}
 	}
 </script>
@@ -589,7 +728,7 @@
 		<!-- Scenario Tabs -->
 		<div class="card mb-3">
 			<div class="tabs">
-				{#each ['A', 'B', 'C', 'D', 'E'] as tab}
+				{#each ['A', 'B', 'C', 'D', 'E', 'F'] as tab}
 					<button
 						class="tab"
 						class:active={activeTab === tab}
@@ -624,9 +763,9 @@
 
 		<!-- Trees -->
 		<div class="card mb-3">
-			<div class="trees-side-by-side" class:single-tree={activeTab === 'B' || activeTab === 'C'}>
+			<div class="trees-side-by-side" class:single-tree={activeTab === 'B' || activeTab === 'C' || activeTab === 'F'}>
 				<!-- Source Tree (only for A, D, E) -->
-				{#if activeTab !== 'B' && activeTab !== 'C'}
+				{#if activeTab !== 'B' && activeTab !== 'C' && activeTab !== 'F'}
 					<div>
 						<h3>Source Tree (drag from here)</h3>
 						<div class="tree-container">
@@ -654,6 +793,8 @@
 					<h3>
 						{#if activeTab === 'B' || activeTab === 'C'}
 							Tree (drag to reorganize)
+						{:else if activeTab === 'F'}
+							Tree (click folder, then refresh)
 						{:else}
 							Target Tree
 						{/if}
@@ -761,6 +902,24 @@
 									</div>
 								{/snippet}
 							</Tree>
+						{:else if activeTab === 'F'}
+							<Tree
+								bind:this={treeRefF}
+								treeId="tree-f"
+								data={targetDataF}
+								idMember="id"
+								pathMember="path"
+								orderMember="sortOrder"
+								sortCallback={sortByOrder}
+								expandLevel={3}
+								onNodeClicked={onNodeClickF}
+								selectedNode={selectedNodeF}
+								isLoading={isLoadingF}
+							>
+								{#snippet nodeTemplate(node)}
+									<span><small class="node-id">[{node.data?.id}]</small> {node.data?.icon} {node.data?.name}</span>
+								{/snippet}
+							</Tree>
 						{/if}
 					</div>
 				</div>
@@ -789,6 +948,11 @@
 						Save All ({unsavedCountE} unsaved)
 					</button>
 					<button class="btn btn-outline-secondary" onclick={clearE}>Clear All</button>
+				{:else if activeTab === 'F'}
+					<button class="btn btn-primary" onclick={refreshBranchF} disabled={!selectedNodeF}>Refresh Branch</button>
+					<button class="btn btn-outline-primary" onclick={lazyLoadChildrenF} disabled={!selectedNodeF}>Lazy Load Children</button>
+					<button class="btn btn-outline-secondary" onclick={resetF}>Reset</button>
+					<span class="hint">{selectedNodeF ? `Selected: ${selectedNodeF.data?.name}` : 'Click a folder to select it'}</span>
 				{/if}
 			</div>
 		</div>
@@ -1059,6 +1223,90 @@
     </div>
   {/snippet}
 </Tree>`}</pre>
+				{:else if activeTab === 'F'}
+					<pre>{`<script>
+  import { Tree } from '@keenmate/svelte-treeview';
+
+  let treeRef;
+  let treeData = $state([...initialData]);
+  let selectedNode = $state(null);
+  let isLoading = $state(false);
+
+  function onNodeClicked(node) {
+    selectedNode = node;
+  }
+
+  async function refreshBranch() {
+    if (!selectedNode) return;
+
+    const folderPath = selectedNode.path;
+    isLoading = true;
+
+    // 1. Get current children
+    const children = treeRef.getChildren(folderPath);
+
+    // 2. Fetch new children from server
+    const newChildren = await fetchChildrenFromServer(folderPath);
+
+    // 3. Build changes array: delete old + create new
+    const changes = [
+      ...children.map(c => ({ operation: 'delete', path: c.path })),
+      ...newChildren.map(c => ({ operation: 'create', parentPath: folderPath, data: c }))
+    ];
+
+    // 4. Apply all changes in single call (single re-render!)
+    const result = treeRef.applyChanges(changes);
+    console.log(\`Applied: \${result.successful} ok, \${result.failed.length} failed\`);
+
+    // 5. Expand to show new children
+    treeRef.expandAll(folderPath);
+
+    isLoading = false;
+  }
+
+  async function lazyLoadChildren() {
+    if (!selectedNode) return;
+
+    const folderPath = selectedNode.path;
+
+    // Check if already has children
+    const existing = treeRef.getChildren(folderPath);
+    if (existing.length > 0) return;
+
+    isLoading = true;
+
+    // Fetch children from server
+    const newChildren = await fetchChildrenFromServer(folderPath);
+
+    // Build changes array and apply
+    const changes = newChildren.map(c => ({
+      operation: 'create',
+      parentPath: folderPath,
+      data: c
+    }));
+    treeRef.applyChanges(changes);
+
+    treeRef.expandAll(folderPath);
+    isLoading = false;
+  }
+</script>
+
+<button onclick={refreshBranch} disabled={!selectedNode}>
+  Refresh Branch
+</button>
+<button onclick={lazyLoadChildren} disabled={!selectedNode}>
+  Lazy Load
+</button>
+
+<Tree
+  bind:this={treeRef}
+  data={treeData}
+  idMember="id"
+  pathMember="path"
+  onNodeClicked={onNodeClicked}
+  {selectedNode}
+  {isLoading}
+/>`}</pre>
 				{/if}
 			</div>
 		</div>

@@ -35,6 +35,7 @@ const config: PartialDocsConfig = {
 					{ label: 'Search & Filter', href: '/examples/search' },
 					{ label: 'Drag & Drop', href: '/examples/drag-drop' },
 					{ label: 'D&D Scenarios', href: '/examples/drag-drop-scenarios' },
+					{ label: 'Batch Operations', href: '/examples/batch-operations' },
 					{ label: 'Context Menus', href: '/examples/context-menu' },
 					{ label: 'Custom Styling', href: '/examples/custom-styling' },
 					{ label: 'Drag Highlight', href: '/examples/drag-highlight' },
