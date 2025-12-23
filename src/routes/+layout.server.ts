@@ -34,6 +34,7 @@ const config: PartialDocsConfig = {
 					{ label: 'Data Structure', href: '/examples/data-structure' },
 					{ label: 'Search & Filter', href: '/examples/search' },
 					{ label: 'Drag & Drop', href: '/examples/drag-drop' },
+					{ label: 'D&D Scenarios', href: '/examples/drag-drop-scenarios' },
 					{ label: 'Context Menus', href: '/examples/context-menu' },
 					{ label: 'Custom Styling', href: '/examples/custom-styling' },
 					{ label: 'Drag Highlight', href: '/examples/drag-highlight' },

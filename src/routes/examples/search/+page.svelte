@@ -284,6 +284,7 @@
 			// Use the tree's search method to get matching nodes
 			foundNodes = treeElement.searchNodes ? treeElement.searchNodes(searchText, {
 				suggest: true,
+				threshold: 5,
 				limit: 50
 			}) : [];
 			currentFoundIndex = -1;
@@ -309,67 +310,6 @@
 
 			{#snippet demoContent()}
 				<div class="tree-demo">
-					<div class="tree-search mb-3">
-						<div class="input-group">
-							<button
-								class="btn btn-outline-secondary"
-								type="button"
-								onclick={() => searchType = searchType === 'filter' ? 'search' : 'filter'}
-								title="Toggle between filter and search mode">
-								{#if searchType === 'filter'}
-									<i class="fas fa-filter"></i> 🔽
-								{:else}
-									<i class="fas fa-magnifying-glass"></i> 🔎
-								{/if}
-							</button>
-							<input
-								type="text"
-								class="form-control"
-								placeholder={searchType === 'filter' ? 'Filter tree nodes...' : 'Search tree nodes (press Enter to navigate)...'}
-								bind:value={searchText}
-								onkeydown={handleSearchKeyDown}
-							/>
-							{#if searchText}
-								<button
-									class="btn btn-outline-secondary"
-									type="button"
-									onclick={() => { searchText = ''; currentFoundIndex = -1; }}
-									title="Clear search">
-									<i class="fas fa-times"></i> ❌
-								</button>
-							{/if}
-							{#if searchType === 'search' && foundNodes.length > 0}
-								<button
-									class="btn btn-outline-secondary"
-									type="button"
-									onclick={navigatePrevious}
-									disabled={currentFoundIndex <= 0}
-									title="Previous match">
-									<i class="fas fa-arrow-up"></i> ⬆️
-								</button>
-								<button
-									class="btn btn-outline-secondary"
-									type="button"
-									onclick={navigateNext}
-									disabled={currentFoundIndex >= foundNodes.length - 1}
-									title="Next match">
-									<i class="fas fa-arrow-down"></i> ⬇️
-								</button>
-							{/if}
-						</div>
-						{#if searchText}
-							<div class="text-muted small mt-2">
-								{#if searchType === 'filter'}
-									Found results: {foundNodes.length || 0}
-								{:else}
-									Found results: {foundNodes.length || 0}
-									{#if foundNodes.length > 0 && currentFoundIndex >= 0}
-										- Showing {currentFoundIndex + 1} of {foundNodes.length}
-									{/if}
-								{/if}
-							</div>
-						{/if}
-					</div>
 					<Tree
 						bind:this={treeElement}
 						treeId="search-basic-functionality"
@@ -395,7 +335,70 @@
 			{#snippet controlsContent()}
 				<div class="tree-controls">
 					<div class="form-group mb-3">
-						<label class="form-label">🔍 Search Mode</label>
+						<label class="form-label">🔍 Search</label>
+						<div class="input-group">
+							<button
+								class="btn btn-outline-secondary"
+								type="button"
+								onclick={() => searchType = searchType === 'filter' ? 'search' : 'filter'}
+								title="Toggle between filter and search mode">
+								{#if searchType === 'filter'}
+									🔽
+								{:else}
+									🔎
+								{/if}
+							</button>
+							<input
+								type="text"
+								class="form-control"
+								placeholder={searchType === 'filter' ? 'Filter nodes...' : 'Search nodes...'}
+								bind:value={searchText}
+								onkeydown={handleSearchKeyDown}
+							/>
+							{#if searchText}
+								<button
+									class="btn btn-outline-secondary"
+									type="button"
+									onclick={() => { searchText = ''; currentFoundIndex = -1; }}
+									title="Clear search">
+									❌
+								</button>
+							{/if}
+							{#if searchType === 'search' && foundNodes.length > 0}
+								<button
+									class="btn btn-outline-secondary"
+									type="button"
+									onclick={navigatePrevious}
+									disabled={currentFoundIndex <= 0}
+									title="Previous match">
+									⬆️
+								</button>
+								<button
+									class="btn btn-outline-secondary"
+									type="button"
+									onclick={navigateNext}
+									disabled={currentFoundIndex >= foundNodes.length - 1}
+									title="Next match">
+									⬇️
+								</button>
+							{/if}
+						</div>
+						{#if searchText}
+							<small class="text-muted d-block mt-1">
+								{#if searchType === 'filter'}
+									Found: {foundNodes.length || 0}
+								{:else}
+									Found: {foundNodes.length || 0}
+									{#if foundNodes.length > 0 && currentFoundIndex >= 0}
+										- Showing {currentFoundIndex + 1} of {foundNodes.length}
+									{/if}
+								{/if}
+							</small>
+						{/if}
+					</div>
+
+					<div class="form-group mb-3">
+						<label class="form-label">Search Mode</label>
 						<div class="btn-group w-100" role="group">
 							<button
 								type="button"
@@ -506,6 +509,13 @@
 						<li>Debounced search queries</li>
 						<li>Progressive result highlighting</li>
 					</ul>
+
+					<h4>FlexSearch Options</h4>
+					<p>
+						The <code>threshold</code> option (0-9) controls match strictness.
+						Higher values require closer matches. Default is 0 (most fuzzy).
+						This demo uses threshold=5 for balanced results.
+					</p>
 
 					<h4>Current Search</h4>
 					<p class="tree-state">
@@ -774,3 +784,10 @@ const employeeSearchCallback = (node) => {
 		</div>
 	</div>
 </DocLayout>
+
+<style>
+	.tree-demo {
+		height: 400px;
+		overflow: auto;
+	}
+</style>

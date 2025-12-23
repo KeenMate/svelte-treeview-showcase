@@ -4,7 +4,18 @@ All notable changes to the svelte-treeview-showcase project.
 
 ## [Unreleased]
 
+### Fixed
+- **SF01 Search Layout** - Moved search input to controls column so it stays visible during result navigation
+
 ### Added
+- **Business Scenarios Page** - New page at `/examples/drag-drop-scenarios` explaining real-world workflows
+  - Scenario A: Full Redraw + State Preservation (server-owned data)
+  - Scenario B: Partial Redraw with auto-handled moves (recommended)
+  - Scenario C: Individual CRUD operations (real-time editing)
+  - Scenario D: Empty tree + build one by one (new project setup)
+  - Scenario E: Batch create then save (wizard/draft mode)
+  - Interactive demos with mock database and activity logs
+
 - **Version Badge** - Displays `@keenmate/svelte-treeview` version in the header navbar
   - Compile-time constant via Vite's `define` option (not runtime)
   - Automatically syncs with package version at build time

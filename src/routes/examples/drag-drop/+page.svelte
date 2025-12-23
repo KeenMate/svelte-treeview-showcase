@@ -850,9 +850,21 @@ const dragValidationCallback = (draggedNode, targetNode, position) => {
 			{/snippet}
 		</ShowcaseSection>
 
+		<!-- D&D Scenarios -->
+		<div class="mt-5">
+			<div class="card bg-light border-primary">
+				<div class="card-body text-center">
+					<div class="display-5 mb-2">💼</div>
+					<h3>D&D Scenarios</h3>
+					<p class="mb-3">Real-world tree manipulation workflows with database integration patterns. Learn when to use full redraw, partial updates, CRUD operations, and batch saves.</p>
+					<a href="/examples/drag-drop-scenarios" class="btn btn-primary btn-lg">View D&D Scenarios</a>
+				</div>
+			</div>
+		</div>
+
 		<!-- Next Steps -->
 		<div class="mt-5">
-			<h2 class="mb-4">Next Steps</h2>
+			<h2 class="mb-4">Related Examples</h2>
 			<div class="row g-4">
 				<div class="col-md-4">
 					<div class="card text-center h-100">
