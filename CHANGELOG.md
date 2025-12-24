@@ -6,6 +6,10 @@ All notable changes to the svelte-treeview-showcase project.
 
 ### Fixed
 - **SF01 Search Layout** - Moved search input to controls column so it stays visible during result navigation
+- **ShowcaseSection Props** - Fixed property names across all 16 pages using ShowcaseSection component
+  - Renamed `demoColumnTitle` → `col1Title`
+  - Renamed `controlsColumnTitle` → `col2Title`
+  - Renamed `descriptionColumnTitle` → `col3Title`
 
 ### Added
 - **Batch Operations Page** - New page at `/examples/batch-operations` documenting the `applyChanges()` API
