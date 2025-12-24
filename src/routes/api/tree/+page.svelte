@@ -29,9 +29,9 @@
 		<ShowcaseSection
 			titleText="TR01 🔧 Properties"
 			subtitleText="All available properties for the Tree component"
-			demoColumnTitle="Property Reference"
-			controlsColumnTitle="Usage Examples"
-			descriptionColumnTitle="Property Details">
+			col1Title="Property Reference"
+			col2Title="Usage Examples"
+			col3Title="Property Details">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
@@ -165,9 +165,9 @@
 		<ShowcaseSection
 			titleText="TR02 🎭 Template Snippets"
 			subtitleText="Customizable snippet templates for advanced styling"
-			demoColumnTitle="Available Snippets"
-			controlsColumnTitle="Snippet Usage"
-			descriptionColumnTitle="Customization Guide">
+			col1Title="Available Snippets"
+			col2Title="Snippet Usage"
+			col3Title="Customization Guide">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
@@ -250,9 +250,9 @@
 		<ShowcaseSection
 			titleText="TR03 🖱️ Context Menu API"
 			subtitleText="Right-click context menus with callback and snippet approaches"
-			demoColumnTitle="Context Menu Properties"
-			controlsColumnTitle="Context Menu Usage"
-			descriptionColumnTitle="Context Menu Features">
+			col1Title="Context Menu Properties"
+			col2Title="Context Menu Usage"
+			col3Title="Context Menu Features">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
@@ -460,9 +460,9 @@
 		<ShowcaseSection
 			titleText="TR04 🎪 Callback Props"
 			subtitleText="Svelte 5 callback props for interaction handling"
-			demoColumnTitle="Available Callbacks"
-			controlsColumnTitle="Callback Usage"
-			descriptionColumnTitle="Callback Details">
+			col1Title="Available Callbacks"
+			col2Title="Callback Usage"
+			col3Title="Callback Details">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
@@ -569,9 +569,9 @@
 		<ShowcaseSection
 			titleText="TR05 🔧 Public Methods (v4.5.0+)"
 			subtitleText="Tree manipulation methods for programmatic control"
-			demoColumnTitle="Method Reference"
-			controlsColumnTitle="Usage Examples"
-			descriptionColumnTitle="Implementation Guide">
+			col1Title="Method Reference"
+			col2Title="Usage Examples"
+			col3Title="Implementation Guide">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
@@ -768,9 +768,9 @@
 		<ShowcaseSection
 			titleText="TR06 💡 Usage Examples"
 			subtitleText="Common implementation patterns and use cases"
-			demoColumnTitle="Live Example"
-			controlsColumnTitle="Complete Code"
-			descriptionColumnTitle="Implementation Notes">
+			col1Title="Live Example"
+			col2Title="Complete Code"
+			col3Title="Implementation Notes">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">
@@ -849,9 +849,9 @@
 		<ShowcaseSection
 			titleText="TR07 ♿ Accessibility"
 			subtitleText="Built-in accessibility features and best practices"
-			demoColumnTitle="Accessibility Features"
-			controlsColumnTitle="ARIA Implementation"
-			descriptionColumnTitle="Accessibility Guide">
+			col1Title="Accessibility Features"
+			col2Title="ARIA Implementation"
+			col3Title="Accessibility Guide">
 
 			{#snippet demoContent()}
 				<div class="list-group">

@@ -296,9 +296,9 @@
 		<ShowcaseSection
 			titleText="CM01 🎞️ Callback-Based Context Menu"
 			subtitleText="Dynamic menus with disabled states using contextMenuCallback"
-			demoColumnTitle="Movie Streaming App"
-			controlsColumnTitle="Callback Code"
-			descriptionColumnTitle="Callback Features">
+			col1Title="Movie Streaming App"
+			col2Title="Callback Code"
+			col3Title="Callback Features">
 
 			{#snippet demoContent()}
 				<div class="tree-demo-context-menu">
@@ -445,9 +445,9 @@ const createMovieContextMenu = (node): ContextMenuItem[] => {
 		<ShowcaseSection
 			titleText="CM02 🎨 Snippet-Based Context Menu"
 			subtitleText="Manual template with full control using {'#snippet contextMenu'}"
-			demoColumnTitle="Custom Menu Design"
-			controlsColumnTitle="Template Code"
-			descriptionColumnTitle="Snippet Benefits">
+			col1Title="Custom Menu Design"
+			col2Title="Template Code"
+			col3Title="Snippet Benefits">
 
 			{#snippet demoContent()}
 				<div class="tree-demo-context-menu">
@@ -605,9 +605,9 @@ const createMovieContextMenu = (node): ContextMenuItem[] => {
 		<ShowcaseSection
 			titleText="CM03 ⏳ Async Callback Support"
 			subtitleText="Context menu callbacks now support async operations with automatic error handling"
-			demoColumnTitle="Async Operations Demo"
-			controlsColumnTitle="Async Examples"
-			descriptionColumnTitle="Async Features">
+			col1Title="Async Operations Demo"
+			col2Title="Async Examples"
+			col3Title="Async Features">
 
 			{#snippet demoContent()}
 				<div class="tree-demo-context-menu">
@@ -799,9 +799,9 @@ const createAsyncMovieContextMenu = (node, closeMenuCallback): ContextMenuItem[]
 		<ShowcaseSection
 			titleText="CM04 🔍 Debug Context Menu Mode"
 			subtitleText="Development tool for testing and styling context menus"
-			demoColumnTitle="Debug Configuration"
-			controlsColumnTitle="Position Controls"
-			descriptionColumnTitle="Debug Benefits">
+			col1Title="Debug Configuration"
+			col2Title="Position Controls"
+			col3Title="Debug Benefits">
 
 			{#snippet demoContent()}
 				<div class="tree-demo-context-menu">

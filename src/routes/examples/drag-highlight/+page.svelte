@@ -138,9 +138,9 @@
 		<ShowcaseSection
 			titleText="DH01 Interactive Highlight Demo"
 			subtitleText="Try different highlight styles during drag operations"
-			demoColumnTitle="Drag & Drop Tree"
-			controlsColumnTitle="Highlight Controls"
-			descriptionColumnTitle="Highlight Features">
+			col1Title="Drag & Drop Tree"
+			col2Title="Highlight Controls"
+			col3Title="Highlight Features">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">
@@ -231,9 +231,9 @@
 		<ShowcaseSection
 			titleText="DH02 CSS Implementation"
 			subtitleText="How to create custom drag highlight styles"
-			demoColumnTitle="CSS Examples"
-			controlsColumnTitle="Configuration"
-			descriptionColumnTitle="Implementation">
+			col1Title="CSS Examples"
+			col2Title="Configuration"
+			col3Title="Implementation">
 
 			{#snippet demoContent()}
 				<CodeBlock

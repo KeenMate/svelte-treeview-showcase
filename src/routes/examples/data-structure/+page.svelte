@@ -185,9 +185,9 @@
 		<ShowcaseSection
 			titleText="DS01 Custom Path Separators"
 			subtitleText="LTree paths can use any separator, not just dots"
-			demoColumnTitle="Slash-separated Paths"
-			controlsColumnTitle="Separator Configuration"
-			descriptionColumnTitle="Flexibility">
+			col1Title="Slash-separated Paths"
+			col2Title="Separator Configuration"
+			col3Title="Flexibility">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">
@@ -289,9 +289,9 @@ const sortCallback = (items) => {
 		<ShowcaseSection
 			titleText="DS02 Automatic Metadata Calculation"
 			subtitleText="Tree automatically calculates level, parentPath, and hasChildren"
-			demoColumnTitle="Minimal Data"
-			controlsColumnTitle="What Gets Calculated"
-			descriptionColumnTitle="Automatic Features">
+			col1Title="Minimal Data"
+			col2Title="What Gets Calculated"
+			col3Title="Automatic Features">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">
@@ -367,9 +367,9 @@ const minimalData = [
 		<ShowcaseSection
 			titleText="DS03 Pre-calculated Metadata"
 			subtitleText="Optimize performance by providing level, parentPath, and hasChildren"
-			demoColumnTitle="Enriched Data"
-			controlsColumnTitle="Manual Optimization"
-			descriptionColumnTitle="Performance Benefits">
+			col1Title="Enriched Data"
+			col2Title="Manual Optimization"
+			col3Title="Performance Benefits">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">
@@ -465,9 +465,9 @@ ORDER BY path;`}</code></pre>
 		<ShowcaseSection
 			titleText="DS04 LTree Path Structure"
 			subtitleText="Understanding the hierarchical path system"
-			demoColumnTitle="Path Visualization"
-			controlsColumnTitle="Path Examples"
-			descriptionColumnTitle="LTree Concepts">
+			col1Title="Path Visualization"
+			col2Title="Path Examples"
+			col3Title="LTree Concepts">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">
@@ -538,9 +538,9 @@ const data = [
 		<ShowcaseSection
 			titleText="DS05 Windows File System Structure"
 			subtitleText="Real Windows paths with backslash separator"
-			demoColumnTitle="Windows File Tree"
-			controlsColumnTitle="Data Structure"
-			descriptionColumnTitle="Implementation">
+			col1Title="Windows File Tree"
+			col2Title="Data Structure"
+			col3Title="Implementation">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">
@@ -649,9 +649,9 @@ const fileSystemData = [
 		<ShowcaseSection
 			titleText="DS06 Data Structure Comparison"
 			subtitleText="Choose the right approach for your use case"
-			demoColumnTitle="Approach Comparison"
-			controlsColumnTitle="Performance Analysis"
-			descriptionColumnTitle="Best Practices">
+			col1Title="Approach Comparison"
+			col2Title="Performance Analysis"
+			col3Title="Best Practices">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">

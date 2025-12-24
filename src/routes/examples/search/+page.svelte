@@ -304,9 +304,9 @@
 		<ShowcaseSection
 			titleText="SF01 Basic Search Functionality"
 			subtitleText="Built-in search with FlexSearch integration"
-			demoColumnTitle="Interactive Search"
-			controlsColumnTitle="Search Controls"
-			descriptionColumnTitle="Search Features">
+			col1Title="Interactive Search"
+			col2Title="Search Controls"
+			col3Title="Search Features">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">
@@ -529,9 +529,9 @@
 		<ShowcaseSection
 			titleText="SF02 Advanced Search Configuration"
 			subtitleText="Fine-tune search performance and behavior"
-			demoColumnTitle="Performance Settings"
-			controlsColumnTitle="Indexer Configuration"
-			descriptionColumnTitle="Performance Guidelines">
+			col1Title="Performance Settings"
+			col2Title="Indexer Configuration"
+			col3Title="Performance Guidelines">
 
 			{#snippet demoContent()}
 				<div class="tree-controls">
@@ -622,9 +622,9 @@
 		<ShowcaseSection
 			titleText="SF03 Custom Search Callback"
 			subtitleText="Define exactly what content should be searchable"
-			demoColumnTitle="Custom Search Logic"
-			controlsColumnTitle="Callback Implementation"
-			descriptionColumnTitle="Use Cases">
+			col1Title="Custom Search Logic"
+			col2Title="Callback Implementation"
+			col3Title="Use Cases">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">

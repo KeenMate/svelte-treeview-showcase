@@ -270,9 +270,9 @@
     <ShowcaseSection
       titleText="PF01 Performance Monitoring"
       subtitleText="Test different dataset sizes and monitor performance"
-      demoColumnTitle="Large Dataset Demo"
-      controlsColumnTitle="Performance Controls"
-      descriptionColumnTitle="Metrics"
+      col1Title="Large Dataset Demo"
+      col2Title="Performance Controls"
+      col3Title="Metrics"
     >
       {#snippet demoContent()}
         <div class="tree-demo">
@@ -413,9 +413,9 @@
     <ShowcaseSection
       titleText="PF02 Optimization Techniques"
       subtitleText="Best practices for large datasets and smooth performance"
-      demoColumnTitle="Optimization Tips"
-      controlsColumnTitle="Implementation"
-      descriptionColumnTitle="Guidelines"
+      col1Title="Optimization Tips"
+      col2Title="Implementation"
+      col3Title="Guidelines"
     >
       {#snippet demoContent()}
         <div class="optimization-tips">
@@ -537,9 +537,9 @@ const VirtualTree = ({ data, height = 400 }) => {
     <ShowcaseSection
       titleText="PF03 Performance Benchmarking"
       subtitleText="Measure and compare performance across different configurations"
-      demoColumnTitle="Benchmark Results"
-      controlsColumnTitle="Benchmark Code"
-      descriptionColumnTitle="Analysis"
+      col1Title="Benchmark Results"
+      col2Title="Benchmark Code"
+      col3Title="Analysis"
     >
       {#snippet demoContent()}
         <div class="benchmark-section">

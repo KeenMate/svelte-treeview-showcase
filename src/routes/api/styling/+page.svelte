@@ -96,9 +96,9 @@
 		<ShowcaseSection
 			titleText="ST01 🎨 Theme Gallery"
 			subtitleText="Pre-built themes and live styling examples"
-			demoColumnTitle="Live Theme Preview"
-			controlsColumnTitle="Theme Selector"
-			descriptionColumnTitle="Theme Details">
+			col1Title="Live Theme Preview"
+			col2Title="Theme Selector"
+			col3Title="Theme Details">
 
 			{#snippet demoContent()}
 				<div class="tree-demo" style="min-height: 350px;">
@@ -172,9 +172,9 @@
 		<ShowcaseSection
 			titleText="ST02 🔧 CSS Classes & Selectors"
 			subtitleText="Available CSS classes and selectors for customization"
-			demoColumnTitle="CSS Class Reference"
-			controlsColumnTitle="Styling Examples"
-			descriptionColumnTitle="CSS Architecture">
+			col1Title="CSS Class Reference"
+			col2Title="Styling Examples"
+			col3Title="CSS Architecture">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
@@ -355,9 +355,9 @@
 		<ShowcaseSection
 			titleText="ST03 🌈 Custom Themes"
 			subtitleText="Create your own themes with CSS custom properties"
-			demoColumnTitle="Theme Examples"
-			controlsColumnTitle="Theme Implementation"
-			descriptionColumnTitle="Theming Guide">
+			col1Title="Theme Examples"
+			col2Title="Theme Implementation"
+			col3Title="Theming Guide">
 
 			{#snippet demoContent()}
 				<div class="row g-3">
@@ -492,9 +492,9 @@
 		<ShowcaseSection
 			titleText="ST04 📱 Responsive Design"
 			subtitleText="Mobile-friendly styling and responsive behaviors"
-			demoColumnTitle="Responsive Features"
-			controlsColumnTitle="Responsive CSS"
-			descriptionColumnTitle="Mobile Optimization">
+			col1Title="Responsive Features"
+			col2Title="Responsive CSS"
+			col3Title="Mobile Optimization">
 
 			{#snippet demoContent()}
 				<div class="responsive-features">
@@ -646,9 +646,9 @@
 		<ShowcaseSection
 			titleText="ST05 🎯 Drag & Drop Styling (v4.5.0+)"
 			subtitleText="CSS classes for drag-drop visual feedback, drop zones, and touch support"
-			demoColumnTitle="Class Reference"
-			controlsColumnTitle="Styling Examples"
-			descriptionColumnTitle="Implementation Guide">
+			col1Title="Class Reference"
+			col2Title="Styling Examples"
+			col3Title="Implementation Guide">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">

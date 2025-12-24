@@ -119,9 +119,9 @@
 		<ShowcaseSection
 			titleText="EV01 🎪 Live Callback Monitor"
 			subtitleText="Interact with the tree to see callback invocations in real-time"
-			demoColumnTitle="Interactive Tree"
-			controlsColumnTitle="Callback Log"
-			descriptionColumnTitle="Callback Guide">
+			col1Title="Interactive Tree"
+			col2Title="Callback Log"
+			col3Title="Callback Guide">
 
 			{#snippet demoContent()}
 				<div class="mb-3">
@@ -217,9 +217,9 @@
 		<ShowcaseSection
 			titleText="EV02 🔥 Callback Props Reference"
 			subtitleText="Svelte 5 callback props for handling user interactions"
-			demoColumnTitle="Callback Reference"
-			controlsColumnTitle="Usage Examples"
-			descriptionColumnTitle="Implementation Guide">
+			col1Title="Callback Reference"
+			col2Title="Usage Examples"
+			col3Title="Implementation Guide">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
@@ -343,9 +343,9 @@
 		<ShowcaseSection
 			titleText="EV03 🤏 onNodeDrop Deep Dive (v4.5.0+)"
 			subtitleText="Extended drop callback with position and operation support"
-			demoColumnTitle="Full Signature"
-			controlsColumnTitle="Implementation Examples"
-			descriptionColumnTitle="Drop Handling Guide">
+			col1Title="Full Signature"
+			col2Title="Implementation Examples"
+			col3Title="Drop Handling Guide">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
@@ -491,9 +491,9 @@
 		<ShowcaseSection
 			titleText="EV04 🔍 Search API"
 			subtitleText="Search is prop-based, not callback-based - use searchText prop and searchNodes method"
-			demoColumnTitle="Search Props & Methods"
-			controlsColumnTitle="Search Implementation"
-			descriptionColumnTitle="Search Guide">
+			col1Title="Search Props & Methods"
+			col2Title="Search Implementation"
+			col3Title="Search Guide">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
@@ -618,9 +618,9 @@
 		<ShowcaseSection
 			titleText="EV05 ⚡ Performance & Best Practices"
 			subtitleText="Optimize callback handling for large trees and complex applications"
-			demoColumnTitle="Best Practices"
-			controlsColumnTitle="Svelte 5 Patterns"
-			descriptionColumnTitle="Performance Guide">
+			col1Title="Best Practices"
+			col2Title="Svelte 5 Patterns"
+			col3Title="Performance Guide">
 
 			{#snippet demoContent()}
 				<div class="best-practices">

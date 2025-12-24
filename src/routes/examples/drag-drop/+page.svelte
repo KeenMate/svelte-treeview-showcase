@@ -279,9 +279,9 @@
 		<ShowcaseSection
 			titleText="DD01 Basic Drag & Drop"
 			subtitleText="Simple drag and drop between two trees"
-			demoColumnTitle="Interactive Demo"
-			controlsColumnTitle="Event Log"
-			descriptionColumnTitle="Features">
+			col1Title="Interactive Demo"
+			col2Title="Event Log"
+			col3Title="Features">
 
 			{#snippet demoContent()}
 				<div class="row">
@@ -388,9 +388,9 @@
 		<ShowcaseSection
 			titleText="DD02 Tree Reorganization"
 			subtitleText="Reorder and reorganize tree structure"
-			demoColumnTitle="File System Tree"
-			controlsColumnTitle="Implementation"
-			descriptionColumnTitle="Reorganization">
+			col1Title="File System Tree"
+			col2Title="Implementation"
+			col3Title="Reorganization">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">
@@ -475,9 +475,9 @@ const dragValidationCallback = (draggedNode, targetNode, position) => {
 		<ShowcaseSection
 			titleText="DD03 Configuration Options"
 			subtitleText="Customize drag & drop behavior"
-			demoColumnTitle="Configuration Properties"
-			controlsColumnTitle="Event Handling"
-			descriptionColumnTitle="Customization">
+			col1Title="Configuration Properties"
+			col2Title="Event Handling"
+			col3Title="Customization">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
@@ -579,9 +579,9 @@ const dragValidationCallback = (draggedNode, targetNode, position) => {
 		<ShowcaseSection
 			titleText="DD04 🆕 v4.5.0 Features"
 			subtitleText="New drag-drop capabilities: touch support, drop positions, glow mode, and more"
-			demoColumnTitle="New Properties"
-			controlsColumnTitle="Usage Examples"
-			descriptionColumnTitle="Feature Guide">
+			col1Title="New Properties"
+			col2Title="Usage Examples"
+			col3Title="Feature Guide">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
@@ -726,9 +726,9 @@ const dragValidationCallback = (draggedNode, targetNode, position) => {
 		<ShowcaseSection
 			titleText="DD05 Drop Zone Styles"
 			subtitleText="Configure visual drop zone appearance with session storage persistence"
-			demoColumnTitle="Interactive Demo"
-			controlsColumnTitle="Configuration"
-			descriptionColumnTitle="Style Options">
+			col1Title="Interactive Demo"
+			col2Title="Configuration"
+			col3Title="Style Options">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">

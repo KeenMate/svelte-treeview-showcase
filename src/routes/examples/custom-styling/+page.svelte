@@ -109,9 +109,9 @@
 		<ShowcaseSection
 			titleText="CS01 Pre-built Themes"
 			subtitleText="Choose from different visual themes"
-			demoColumnTitle="Live Theme Demo"
-			controlsColumnTitle="Theme Selection"
-			descriptionColumnTitle="Theme Features">
+			col1Title="Live Theme Demo"
+			col2Title="Theme Selection"
+			col3Title="Theme Features">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">
@@ -207,9 +207,9 @@
 		<ShowcaseSection
 			titleText="CS02 CSS Customization Guide"
 			subtitleText="Learn how to create custom styles for your tree"
-			demoColumnTitle="CSS Examples"
-			controlsColumnTitle="Theme CSS"
-			descriptionColumnTitle="Styling Tips">
+			col1Title="CSS Examples"
+			col2Title="Theme CSS"
+			col3Title="Styling Tips">
 
 			{#snippet demoContent()}
 				<CodeBlock
@@ -351,9 +351,9 @@
 		<ShowcaseSection
 			titleText="CS03 Icon Configuration"
 			subtitleText="Different approaches to displaying icons"
-			demoColumnTitle="Icon Examples"
-			controlsColumnTitle="Icon Settings"
-			descriptionColumnTitle="Icon Options">
+			col1Title="Icon Examples"
+			col2Title="Icon Settings"
+			col3Title="Icon Options">
 
 			{#snippet demoContent()}
 				<div class="row">

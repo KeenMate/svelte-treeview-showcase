@@ -141,9 +141,9 @@
 		<ShowcaseSection
 			titleText="BU01 Essential Properties"
 			subtitleText="The minimum required configuration to display a tree"
-			demoColumnTitle="Live Demo"
-			controlsColumnTitle="Configuration"
-			descriptionColumnTitle="Property Reference">
+			col1Title="Live Demo"
+			col2Title="Configuration"
+			col3Title="Property Reference">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">
@@ -240,9 +240,9 @@
 		<ShowcaseSection
 			titleText="BU02 Expand Level Control"
 			subtitleText="Control which levels are expanded by default"
-			demoColumnTitle="Deep Tree"
-			controlsColumnTitle="Expand Levels"
-			descriptionColumnTitle="Level Behavior">
+			col1Title="Deep Tree"
+			col2Title="Expand Levels"
+			col3Title="Level Behavior">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">
@@ -306,9 +306,9 @@
 		<ShowcaseSection
 			titleText="BU03 Minimal Configuration"
 			subtitleText="The absolute minimum required to display a tree"
-			demoColumnTitle="Simple Tree"
-			controlsColumnTitle="Minimal Code"
-			descriptionColumnTitle="Quick Start">
+			col1Title="Simple Tree"
+			col2Title="Minimal Code"
+			col3Title="Quick Start">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">

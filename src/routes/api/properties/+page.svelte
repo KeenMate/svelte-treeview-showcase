@@ -100,9 +100,9 @@
 		<ShowcaseSection
 			titleText="PR01 🎛️ Interactive Property Explorer"
 			subtitleText="Experiment with different property combinations to see their effects"
-			demoColumnTitle="Live Tree Preview"
-			controlsColumnTitle="Property Controls"
-			descriptionColumnTitle="Property Presets">
+			col1Title="Live Tree Preview"
+			col2Title="Property Controls"
+			col3Title="Property Presets">
 
 			{#snippet demoContent()}
 				<div class="tree-demo" style="min-height: 350px;">
@@ -203,9 +203,9 @@
 		<ShowcaseSection
 			titleText="PR02 🔧 Core Properties"
 			subtitleText="Essential properties that define tree behavior and data structure"
-			demoColumnTitle="Property Details"
-			controlsColumnTitle="Usage Examples"
-			descriptionColumnTitle="Implementation Notes">
+			col1Title="Property Details"
+			col2Title="Usage Examples"
+			col3Title="Implementation Notes">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
@@ -332,9 +332,9 @@ const treeData = [
 		<ShowcaseSection
 			titleText="PR03 🎨 Styling & Display Properties"
 			subtitleText="Properties that control visual appearance and user interface elements"
-			demoColumnTitle="Styling Properties"
-			controlsColumnTitle="Styling Examples"
-			descriptionColumnTitle="CSS Integration">
+			col1Title="Styling Properties"
+			col2Title="Styling Examples"
+			col3Title="CSS Integration">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
@@ -462,9 +462,9 @@ const treeData = [
 		<ShowcaseSection
 			titleText="PR04 🔄 Interaction Properties"
 			subtitleText="Properties that control drag & drop, search, and user interactions"
-			demoColumnTitle="Interaction Properties"
-			controlsColumnTitle="Advanced Usage"
-			descriptionColumnTitle="Interaction Guide">
+			col1Title="Interaction Properties"
+			col2Title="Advanced Usage"
+			col3Title="Interaction Guide">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
@@ -613,9 +613,9 @@ const treeData = [
 		<ShowcaseSection
 			titleText="PR05 🎯 Drop Zone Properties (v4.5.0+)"
 			subtitleText="Configure visual drop indicators and positioning for drag-drop operations"
-			demoColumnTitle="Drop Zone Properties"
-			controlsColumnTitle="Usage Examples"
-			descriptionColumnTitle="Configuration Guide">
+			col1Title="Drop Zone Properties"
+			col2Title="Usage Examples"
+			col3Title="Configuration Guide">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">
@@ -742,9 +742,9 @@ const treeData = [
 		<ShowcaseSection
 			titleText="📝 Callback Properties (Svelte 5)"
 			subtitleText="Event callbacks using Svelte 5 prop syntax instead of on:event dispatchers"
-			demoColumnTitle="Callback Properties"
-			controlsColumnTitle="Usage Examples"
-			descriptionColumnTitle="Migration Guide">
+			col1Title="Callback Properties"
+			col2Title="Usage Examples"
+			col3Title="Migration Guide">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">

@@ -130,9 +130,9 @@
 		<ShowcaseSection
 			titleText="Quick Installation"
 			subtitleText="Get started in seconds"
-			demoColumnTitle="Package Manager"
-			controlsColumnTitle="Import"
-			descriptionColumnTitle="Usage">
+			col1Title="Package Manager"
+			col2Title="Import"
+			col3Title="Usage">
 
 			{#snippet demoContent()}
 				<CodeBlock

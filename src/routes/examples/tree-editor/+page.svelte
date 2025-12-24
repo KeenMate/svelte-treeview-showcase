@@ -207,9 +207,9 @@
 		<ShowcaseSection
 			titleText="Interactive Tree Editor"
 			subtitleText="Click nodes to select, then use buttons to add, remove, or move nodes"
-			demoColumnTitle="Tree"
-			controlsColumnTitle="Editor Controls"
-			descriptionColumnTitle="Operation Log">
+			col1Title="Tree"
+			col2Title="Editor Controls"
+			col3Title="Operation Log">
 
 			{#snippet demoContent()}
 				<div class="tree-demo" style="min-height: 350px; border: 1px solid #dee2e6; border-radius: 4px; padding: 8px;">
@@ -321,9 +321,9 @@
 		<ShowcaseSection
 			titleText="Tree Editor Methods (v4.5.0+)"
 			subtitleText="Public methods for programmatic tree manipulation"
-			demoColumnTitle="Method Reference"
-			controlsColumnTitle="Usage Examples"
-			descriptionColumnTitle="Return Types">
+			col1Title="Method Reference"
+			col2Title="Usage Examples"
+			col3Title="Return Types">
 
 			{#snippet demoContent()}
 				<div class="table-responsive">

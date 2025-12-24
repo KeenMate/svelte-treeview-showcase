@@ -39,9 +39,9 @@
 		<ShowcaseSection
 			titleText="GS01 Installation"
 			subtitleText="Add the treeview component to your project"
-			demoColumnTitle="Package Manager"
-			controlsColumnTitle="Verify Installation"
-			descriptionColumnTitle="Requirements">
+			col1Title="Package Manager"
+			col2Title="Verify Installation"
+			col3Title="Requirements">
 
 			{#snippet demoContent()}
 				<CodeBlock
@@ -92,9 +92,9 @@ console.log(Tree); // Should output the component`}
 		<ShowcaseSection
 			titleText="GS02 Quick Start"
 			subtitleText="Get a basic tree up and running in minutes"
-			demoColumnTitle="Live Example"
-			controlsColumnTitle="Complete Code"
-			descriptionColumnTitle="Key Concepts">
+			col1Title="Live Example"
+			col2Title="Complete Code"
+			col3Title="Key Concepts">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">
@@ -153,9 +153,9 @@ console.log(Tree); // Should output the component`}
 		<ShowcaseSection
 			titleText="GS03 Basic Configuration"
 			subtitleText="Customize behavior and appearance"
-			demoColumnTitle="Configured Tree"
-			controlsColumnTitle="Configuration Code"
-			descriptionColumnTitle="Configuration Options">
+			col1Title="Configured Tree"
+			col2Title="Configuration Code"
+			col3Title="Configuration Options">
 
 			{#snippet demoContent()}
 				<div class="tree-demo">
