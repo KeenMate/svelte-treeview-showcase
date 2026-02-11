@@ -738,9 +738,145 @@ const treeData = [
 			{/snippet}
 		</ShowcaseSection>
 
+		<!-- ⚡ Performance & Rendering Properties Section (v4.6.0+) -->
+		<ShowcaseSection
+			titleText="PR06 ⚡ Performance & Rendering (v4.6.0+)"
+			subtitleText="Progressive flat rendering for optimal performance with large trees"
+			col1Title="Rendering Properties"
+			col2Title="Usage Examples"
+			col3Title="Performance Guide">
+
+			{#snippet demoContent()}
+				<div class="table-responsive">
+					<table class="table table-hover">
+						<thead class="table-dark">
+							<tr>
+								<th style="width: 25%">Property</th>
+								<th style="width: 15%">Type</th>
+								<th style="width: 15%">Default</th>
+								<th style="width: 45%">Description</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr class="table-success">
+								<td><code>useFlatRendering</code></td>
+								<td><code>boolean</code></td>
+								<td><code>true</code></td>
+								<td>Use flat rendering mode (single loop) instead of recursive components. 12x faster for large trees.</td>
+							</tr>
+							<tr class="table-success">
+								<td><code>progressiveRender</code></td>
+								<td><code>boolean</code></td>
+								<td><code>true</code></td>
+								<td>Render nodes progressively in batches to prevent UI freeze.</td>
+							</tr>
+							<tr class="table-success">
+								<td><code>initialBatchSize</code></td>
+								<td><code>number</code></td>
+								<td><code>20</code></td>
+								<td>First batch size. Renders instantly for immediate visual feedback.</td>
+							</tr>
+							<tr class="table-success">
+								<td><code>maxBatchSize</code></td>
+								<td><code>number</code></td>
+								<td><code>500</code></td>
+								<td>Maximum batch size cap. Batches double each frame up to this limit.</td>
+							</tr>
+							<tr>
+								<td><code>isRendering</code></td>
+								<td><code>boolean</code></td>
+								<td><code>false</code></td>
+								<td>Bindable. True while progressive rendering is in progress.</td>
+							</tr>
+							<tr>
+								<td><code>onRenderStart</code></td>
+								<td><code>() => void</code></td>
+								<td><code>null</code></td>
+								<td>Callback when progressive rendering begins.</td>
+							</tr>
+							<tr>
+								<td><code>onRenderProgress</code></td>
+								<td><code>(stats) => void</code></td>
+								<td><code>null</code></td>
+								<td>Callback with render progress stats (pending, processed).</td>
+							</tr>
+							<tr>
+								<td><code>onRenderComplete</code></td>
+								<td><code>(stats) => void</code></td>
+								<td><code>null</code></td>
+								<td>Callback when all nodes have been rendered.</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="alert alert-success mt-3">
+					<strong>🆕 New in v4.6.0:</strong> Progressive flat rendering is now the default. First 20 nodes render instantly, then batches double (20 → 40 → 80 → 160...) for optimal perceived performance.
+				</div>
+			{/snippet}
+
+			{#snippet controlsContent()}
+				<CodeBlock
+					codeContent={`<!-- Default: Progressive flat rendering (recommended) -->
+<Tree
+  data={largeDataset}
+  idMember="id"
+  pathMember="path"
+  displayValueMember="name"
+  useFlatRendering={true}
+  progressiveRender={true}
+  initialBatchSize={20}
+  maxBatchSize={500}
+  bind:isRendering
+  onRenderStart={() => console.log('Rendering started')}
+  onRenderProgress={(stats) => console.log(\`Progress: \${stats.processed}/\${stats.pending + stats.processed}\`)}
+  onRenderComplete={(stats) => console.log('Rendering complete:', stats)}
+/>
+
+{#if isRendering}
+  <div class="loading-indicator">Rendering tree...</div>
+{/if}
+
+<!-- Legacy recursive rendering (for small trees) -->
+<Tree
+  data={smallDataset}
+  idMember="id"
+  pathMember="path"
+  displayValueMember="name"
+  useFlatRendering={false}
+/>`}
+					languageType="svelte"
+					titleText="Progressive Rendering"
+				/>
+			{/snippet}
+
+			{#snippet descriptionContent()}
+				<div class="prose">
+					<h6>📈 Exponential Batching</h6>
+					<p>Batches grow: 20 → 40 → 80 → 160 → 320 → 500 (capped). For 5000 nodes, this means ~8 batches instead of 25 with fixed sizing.</p>
+
+					<h6>⚡ Performance Impact</h6>
+					<ul>
+						<li><strong>Flat mode:</strong> ~12x faster initial render</li>
+						<li><strong>Progressive:</strong> Instant first 20 nodes, smooth fill-in</li>
+						<li><strong>UI:</strong> Remains responsive during rendering</li>
+					</ul>
+
+					<h6>⚠️ $state.raw() Warning</h6>
+					<p>For large datasets (1000+ items), use <code>$state.raw()</code> instead of <code>$state()</code> to avoid Svelte's deep proxy overhead:</p>
+					<pre class="small bg-light p-2 rounded"><code>// ✅ Fast
+let data = $state.raw([...])
+// ❌ Slow with 1000+ items
+let data = $state([...])</code></pre>
+
+					<h6>🔄 Legacy Mode</h6>
+					<p>Set <code>useFlatRendering={'{'}false{'}'}</code> for recursive rendering. Useful for small trees or when you need <code>{'{'}#key changeTracker{'}'}</code> behavior.</p>
+				</div>
+			{/snippet}
+		</ShowcaseSection>
+
 		<!-- 📝 Callback Properties Section (v4.5.0+) -->
 		<ShowcaseSection
-			titleText="📝 Callback Properties (Svelte 5)"
+			titleText="PR07 📝 Callback Properties (Svelte 5)"
 			subtitleText="Event callbacks using Svelte 5 prop syntax instead of on:event dispatchers"
 			col1Title="Callback Properties"
 			col2Title="Usage Examples"
@@ -772,6 +908,11 @@ const treeData = [
 								<td><code>(dropNode, draggedNode, position, event) => void</code></td>
 								<td>Called when node is dropped. <code>position</code> is 'above'|'below'|'child'. <code>dropNode</code> can be null.</td>
 							</tr>
+							<tr class="table-success">
+								<td><code>beforeDropCallback</code></td>
+								<td><code>(dropNode, draggedNode, position, event, operation) => boolean | {'{'}position?{'}'}  | Promise</code></td>
+								<td><strong>🆕 v4.6.0:</strong> Async validation before drop. Return false to cancel, or override position. Supports confirmation dialogs.</td>
+							</tr>
 							<tr>
 								<td><code>contextMenuCallback</code></td>
 								<td><code>(node, closeMenu) => ContextMenuItem[]</code></td>
@@ -780,7 +921,10 @@ const treeData = [
 						</tbody>
 					</table>
 				</div>
-				<div class="alert alert-info mt-3">
+				<div class="alert alert-success mt-3">
+					<strong>🆕 New in v4.6.0:</strong> <code>beforeDropCallback</code> now supports async/Promise returns for confirmation dialogs before completing a drop operation.
+				</div>
+				<div class="alert alert-info mt-2">
 					<strong>Note:</strong> Svelte 5 uses callback props instead of event dispatchers.
 					Use <code>onNodeClicked={'{'}handler{'}'}</code> not <code>on:nodeClick={'{'}handler{'}'}</code>.
 				</div>
@@ -813,6 +957,19 @@ const treeData = [
     }
   }
 
+  // 🆕 v4.6.0: Async beforeDrop validation with dialog
+  async function beforeDrop(dropNode, draggedNode, position, event, operation) {
+    // Return false to cancel
+    if (!dropNode?.data?.canAcceptChildren && position === 'child') {
+      const confirmed = await showConfirmDialog(
+        \`"\${dropNode.data.name}" cannot accept children. Drop as sibling instead?\`
+      );
+      if (!confirmed) return false;
+      return { position: 'below' }; // Override position
+    }
+    return true; // Allow drop
+  }
+
   // Context menu
   function getContextMenu(node, closeMenu) {
     return [
@@ -831,6 +988,7 @@ const treeData = [
   pathMember="path"
   displayValueMember="name"
   onNodeClicked={handleNodeClick}
+  beforeDropCallback={beforeDrop}
   onNodeDrop={handleDrop}
   contextMenuCallback={getContextMenu}
 />`}
@@ -877,6 +1035,15 @@ const treeData = [
 					<ul>
 						<li>Into an empty tree (via dropPlaceholder)</li>
 						<li>Into the root drop zone</li>
+					</ul>
+
+					<h6>🆕 Async beforeDropCallback (v4.6.0)</h6>
+					<p>Validate or modify drops with async support:</p>
+					<ul>
+						<li>Return <code>false</code> to cancel the drop</li>
+						<li>Return <code>true</code> to allow</li>
+						<li>Return <code>{'{'}position: 'below'{'}'}</code> to override position</li>
+						<li>Supports <code>async/await</code> for confirmation dialogs</li>
 					</ul>
 				</div>
 			{/snippet}

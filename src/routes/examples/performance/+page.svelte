@@ -1,10 +1,130 @@
 <script lang="ts">
   import { DocLayout, ShowcaseSection, CodeBlock } from "@keenmate/svelte-docs";
   import { Tree } from "@keenmate/svelte-treeview";
+  import { untrack } from "svelte";
 
-  // Generate large dataset for performance testing
-  function generateLargeDataset(size: number) {
-    const data = [];
+  // Countries + States + Cities (slim version, ~2MB instead of 46MB)
+  const COUNTRIES_DATA_URL = '/countries-states-cities.json';
+
+  interface StateData {
+    name: string;
+    cities: string[];  // Just city names
+  }
+
+  interface CountryData {
+    name: string;
+    emoji: string;
+    states: StateData[];
+  }
+
+  interface TreeNode {
+    id: string;
+    path: string;
+    name: string;
+    type: string;
+    size: string | null;
+    lastModified: string;
+  }
+
+  let isLoadingCountries = $state(false);
+  let countriesLoadError = $state<string | null>(null);
+  let dataSource = $state<'synthetic' | 'countries'>('countries');
+  let initialLoadDone = false;
+
+  async function loadCountriesData(): Promise<TreeNode[]> {
+    isLoadingCountries = true;
+    countriesLoadError = null;
+
+    try {
+      const response = await fetch(COUNTRIES_DATA_URL);
+      if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+      const countries: CountryData[] = await response.json();
+      return transformCountriesData(countries);
+    } catch (error) {
+      countriesLoadError = error instanceof Error ? error.message : 'Unknown error';
+      throw error;
+    } finally {
+      isLoadingCountries = false;
+    }
+  }
+
+  function transformCountriesData(countries: CountryData[]): TreeNode[] {
+    const nodes: TreeNode[] = [];
+    let id = 1;
+
+    countries.forEach((country, countryIdx) => {
+      const countryPath = String(countryIdx + 1);
+      const hasStates = country.states && country.states.length > 0;
+      const totalCities = hasStates
+        ? country.states.reduce((sum, s) => sum + (s.cities?.length || 0), 0)
+        : 0;
+
+      // Country node
+      nodes.push({
+        id: `country-${id++}`,
+        path: countryPath,
+        name: `${country.emoji || '🌍'} ${country.name}`,
+        type: 'country',
+        size: hasStates ? `${country.states.length} states, ${totalCities} cities` : null,
+        lastModified: new Date().toISOString(),
+      });
+
+      if (hasStates) {
+        country.states.forEach((state, stateIdx) => {
+          const statePath = `${countryPath}.${stateIdx + 1}`;
+          const hasCities = state.cities && state.cities.length > 0;
+
+          // State node
+          nodes.push({
+            id: `state-${id++}`,
+            path: statePath,
+            name: `📍 ${state.name}`,
+            type: 'state',
+            size: hasCities ? `${state.cities.length} cities` : null,
+            lastModified: new Date().toISOString(),
+          });
+
+          // City nodes
+          if (hasCities) {
+            state.cities.forEach((cityName, cityIdx) => {
+              nodes.push({
+                id: `city-${id++}`,
+                path: `${statePath}.${cityIdx + 1}`,
+                name: `🏙️ ${cityName}`,
+                type: 'city',
+                size: null,
+                lastModified: new Date().toISOString(),
+              });
+            });
+          }
+        });
+      }
+    });
+
+    return nodes;
+  }
+
+  async function handleLoadCountries() {
+    console.log('[Performance] Loading countries data...');
+    const start = performance.now();
+    try {
+      const data = await loadCountriesData();
+      console.log('[Performance] Countries loaded:', data.length, 'nodes');
+      currentData = data;
+      dataSource = 'countries';
+      const end = performance.now();
+      renderTime = Math.round(end - start);
+      performanceMetrics.lastUpdate = new Date().toLocaleTimeString();
+      console.log('[Performance] Incrementing treeKey to remount tree');
+      treeKey++;
+    } catch (error) {
+      console.error('Failed to load countries data:', error);
+    }
+  }
+
+  // Generate large synthetic dataset for performance testing
+  function generateLargeDataset(size: number): TreeNode[] {
+    const data: TreeNode[] = [];
     const categories = [
       "Documents",
       "Images",
@@ -120,7 +240,9 @@
 
   // Performance configuration
   let selectedDatasetSize = $state("medium");
-  let currentData = $state(generateLargeDataset(datasetSizes.medium.size));
+  // 🆕 v4.6.0: Use $state.raw() for large datasets to avoid Svelte's deep proxy overhead
+  // Start empty, will load countries on mount
+  let currentData = $state.raw<TreeNode[]>([]);
   let renderTime = $state(0);
   let searchTime = $state(0);
   let memoryUsage = $state(0);
@@ -132,6 +254,42 @@
   let enableVirtualization = $state(false);
   let lazyLoading = $state(false);
 
+  // 🆕 v4.6.0: Progressive flat rendering settings
+  let useFlatRendering = $state(true);
+  let progressiveRender = $state(true);
+  let initialBatchSize = $state(20);
+  let maxBatchSize = $state(500);
+  let isRendering = $state(false);
+
+  // Key to force Tree re-mount when settings change
+  let treeKey = $state(0);
+  function reloadTree() {
+    console.log('[Performance] Manual reload triggered');
+    treeKey++;
+  }
+
+  // Load countries data on mount (default data source)
+  $effect(() => {
+    if (!initialLoadDone) {
+      initialLoadDone = true;
+      console.log('[Performance] Initial load - fetching countries data');
+      handleLoadCountries();
+    }
+  });
+
+  // Log and react to expandLevel changes
+  $effect(() => {
+    console.log('[Performance] expandLevel changed to:', expandLevel);
+    // expandLevel only takes effect on mount, so we need to remount the tree
+    // Skip on initial load since countries loader will handle the first mount
+    if (initialLoadDone && currentData.length > 0) {
+      untrack(() => {
+        console.log('[Performance] Remounting tree with new expandLevel');
+        treeKey++;
+      });
+    }
+  });
+
   // Performance monitoring
   let performanceMetrics = $state({
     renderStart: 0,
@@ -141,34 +299,98 @@
     lastUpdate: "",
   });
 
-  // Update dataset when size changes
-  $effect(() => {
-    const size = datasetSizes[selectedDatasetSize].size;
+  // Update dataset when size changes (synthetic data)
+  function loadDataset(size: number) {
+    console.log('[Performance] Loading synthetic dataset, size:', size);
     const start = performance.now();
     currentData = generateLargeDataset(size);
+    dataSource = 'synthetic';
     const end = performance.now();
     renderTime = Math.round(end - start);
+    console.log('[Performance] Synthetic data loaded:', currentData.length, 'nodes in', renderTime, 'ms');
     performanceMetrics.lastUpdate = new Date().toLocaleTimeString();
-  });
+    treeKey++; // Force tree re-mount with new data
+  }
 
-  // Search performance testing
-  let searchText = $state("");
-  let searchResults = $state(0);
-
+  // React to dataset size changes (only when in synthetic mode)
   $effect(() => {
-    if (searchText) {
-      const start = performance.now();
-      const results = currentData.filter((item) =>
-        item.name.toLowerCase().includes(searchText.toLowerCase())
-      );
-      const end = performance.now();
-      searchTime = Math.round(end - start);
-      searchResults = results.length;
-    } else {
-      searchTime = 0;
-      searchResults = 0;
+    const size = datasetSizes[selectedDatasetSize].size;
+    // Only reload if we're already showing synthetic data (user changed size dropdown)
+    if (dataSource === 'synthetic' && currentData.length > 0) {
+      console.log('[Performance] Dataset size changed to:', size);
+      untrack(() => loadDataset(size));
     }
   });
+
+  // Search with navigation
+  let searchText = $state("");
+  let searchResultNodes = $state<any[]>([]);
+  let searchResults = $state(0);
+  let currentSearchIndex = $state(-1);
+  let treeRef = $state<any>(null);
+
+  function performSearch() {
+    if (!treeRef || !searchText.trim()) {
+      searchResultNodes = [];
+      currentSearchIndex = -1;
+      searchTime = 0;
+      searchResults = 0;
+      return;
+    }
+
+    const start = performance.now();
+    const results = treeRef.searchNodes(searchText);
+    const end = performance.now();
+
+    searchTime = Math.round(end - start);
+    searchResultNodes = results || [];
+    searchResults = searchResultNodes.length;
+    currentSearchIndex = searchResultNodes.length > 0 ? 0 : -1;
+
+    // Navigate to first result
+    if (currentSearchIndex >= 0) {
+      navigateToResult(currentSearchIndex);
+    }
+  }
+
+  function navigateToResult(index: number) {
+    if (searchResultNodes.length === 0 || !treeRef) return;
+
+    const node = searchResultNodes[index];
+    treeRef.scrollToPath(node.path, {
+      expand: true,
+      highlight: true,
+      containerScroll: true
+    });
+  }
+
+  function nextResult() {
+    if (searchResultNodes.length === 0) return;
+    currentSearchIndex = (currentSearchIndex + 1) % searchResultNodes.length;
+    navigateToResult(currentSearchIndex);
+  }
+
+  function prevResult() {
+    if (searchResultNodes.length === 0) return;
+    currentSearchIndex = (currentSearchIndex - 1 + searchResultNodes.length) % searchResultNodes.length;
+    navigateToResult(currentSearchIndex);
+  }
+
+  function handleSearchKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      if (searchResultNodes.length === 0) {
+        performSearch();
+      } else {
+        nextResult();
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      nextResult();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      prevResult();
+    }
+  }
 
   // Memory usage estimation
   $effect(() => {
@@ -180,6 +402,24 @@
   // Optimization tips data
   const optimizationTips = [
     {
+      title: "🆕 Use $state.raw() (v4.6.0)",
+      description: "Avoid Svelte's deep proxy overhead for large arrays (5000x faster!)",
+      impact: "High",
+      code: "let data = $state.raw([...])",
+    },
+    {
+      title: "🆕 Flat Rendering (v4.6.0)",
+      description: "Single loop rendering instead of recursive components (12x faster)",
+      impact: "High",
+      code: "useFlatRendering={true}",
+    },
+    {
+      title: "🆕 Progressive Render (v4.6.0)",
+      description: "Render in batches (20→40→80...) to prevent UI freeze",
+      impact: "High",
+      code: "progressiveRender={true}",
+    },
+    {
       title: "Limit Expand Level",
       description: "Keep expandLevel low (1-2) for large datasets",
       impact: "High",
@@ -190,18 +430,6 @@
       description: "Smaller batches for better responsiveness",
       impact: "Medium",
       code: "indexerBatchSize={10}",
-    },
-    {
-      title: "Increase Timeout",
-      description: "Higher timeout prevents UI blocking",
-      impact: "Medium",
-      code: "indexerTimeout={100}",
-    },
-    {
-      title: "Minimize DOM Updates",
-      description: "Use stable keys and avoid unnecessary re-renders",
-      impact: "High",
-      code: "key={item.id}",
     },
     {
       title: "Debounce Search",
@@ -276,36 +504,165 @@
     >
       {#snippet demoContent()}
         <div class="tree-demo">
-          <Tree
-            treeId="performance-large-dataset"
-            data={currentData}
-            idMember="id"
-            pathMember="path"
-            displayValueMember="name"
-            {expandLevel}
-            shouldToggleOnNodeClick={true}
-            shouldUseInternalSearchIndex={true}
-            indexerBatchSize={batchSize}
-            indexerTimeout={batchTimeout}
-			shouldDisplayDebugInformation={true}
-            {searchText}
-            {sortCallback}
-          />
+          <!-- Search Bar -->
+          <div class="search-bar mb-2">
+            <div class="input-group input-group-sm">
+              <input
+                type="text"
+                class="form-control"
+                bind:value={searchText}
+                onkeydown={handleSearchKeydown}
+                placeholder="Search nodes... (Enter to search, ↑↓ to navigate)"
+              />
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                onclick={performSearch}
+                title="Search (Enter)"
+              >
+                🔍
+              </button>
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                onclick={prevResult}
+                disabled={searchResultNodes.length === 0}
+                title="Previous (↑)"
+              >
+                ▲
+              </button>
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                onclick={nextResult}
+                disabled={searchResultNodes.length === 0}
+                title="Next (↓ or Enter)"
+              >
+                ▼
+              </button>
+            </div>
+            {#if searchResultNodes.length > 0}
+              <small class="text-muted">
+                {currentSearchIndex + 1} / {searchResults} results ({searchTime}ms)
+              </small>
+            {:else if searchText && searchResults === 0 && searchTime > 0}
+              <small class="text-muted">No results ({searchTime}ms)</small>
+            {/if}
+          </div>
+
+          <!-- Tree Container -->
+          {#if isLoadingCountries}
+            <div class="alert alert-info py-2">
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              Loading ~28K nodes...
+            </div>
+          {:else if currentData.length === 0}
+            <div class="alert alert-warning py-2">
+              No data loaded yet.
+            </div>
+          {:else}
+          {#key treeKey}
+            <Tree
+              bind:this={treeRef}
+              treeId="performance-large-dataset"
+              data={currentData}
+              idMember="id"
+              pathMember="path"
+              displayValueMember="name"
+              searchValueMember="name"
+              {expandLevel}
+              shouldToggleOnNodeClick={true}
+              shouldUseInternalSearchIndex={true}
+              indexerBatchSize={batchSize}
+              indexerTimeout={batchTimeout}
+              shouldDisplayDebugInformation={true}
+              sortCallback={enableVirtualization ? fastSortCallback : sortCallback}
+              {useFlatRendering}
+              {progressiveRender}
+              {initialBatchSize}
+              {maxBatchSize}
+              bind:isRendering
+            />
+          {/key}
+          {#if isRendering}
+            <div class="alert alert-info mt-2 py-1">
+              <small>🔄 Progressive rendering in progress...</small>
+            </div>
+          {/if}
+          {/if}
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="metrics-grid mt-2">
+          <div class="metric">
+            <strong>Data Source:</strong>
+            {dataSource === 'countries' ? '🌍 Countries/States/Cities' : '📁 Synthetic'}
+          </div>
+          <div class="metric">
+            <strong>Items:</strong>
+            {currentData.length.toLocaleString()}
+          </div>
+          <div class="metric">
+            <strong>Load Time:</strong>
+            {renderTime}ms
+          </div>
+          <div class="metric">
+            <strong>Search Time:</strong>
+            {searchTime}ms
+          </div>
+          {#if memoryUsage > 0}
+            <div class="metric">
+              <strong>Memory:</strong>
+              {memoryUsage}MB
+            </div>
+          {/if}
         </div>
       {/snippet}
 
       {#snippet controlsContent()}
         <div class="tree-controls">
+          <!-- Data Source Selection -->
           <div class="form-group mb-3">
-            <label class="form-label">Dataset Size</label>
-            <select class="form-select" bind:value={selectedDatasetSize}>
-              {#each Object.entries(datasetSizes) as [key, dataset]}
-                <option value={key}>{dataset.label}</option>
-              {/each}
-            </select>
+            <label class="form-label">Data Source</label>
+            <div class="btn-group w-100 mb-2" role="group">
+              <button
+                type="button"
+                class="btn btn-sm {dataSource === 'countries' ? 'btn-primary' : 'btn-outline-primary'}"
+                onclick={handleLoadCountries}
+                disabled={isLoadingCountries}
+              >
+                {#if isLoadingCountries}
+                  <span class="spinner-border spinner-border-sm me-1"></span>
+                {/if}
+                🌍 Countries/States/Cities (~28K)
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm {dataSource === 'synthetic' ? 'btn-primary' : 'btn-outline-primary'}"
+                onclick={() => loadDataset(datasetSizes[selectedDatasetSize].size)}
+              >
+                📁 Synthetic Data
+              </button>
+            </div>
+            {#if countriesLoadError}
+              <div class="alert alert-danger py-1 mb-2">
+                <small>Failed to load: {countriesLoadError}</small>
+              </div>
+            {/if}
           </div>
 
-          <div class="form-group mb-3">
+          {#if dataSource === 'synthetic'}
+            <div class="form-group mb-3">
+              <label class="form-label">Synthetic Dataset Size</label>
+              <select class="form-select" bind:value={selectedDatasetSize}>
+                {#each Object.entries(datasetSizes) as [key, dataset]}
+                  <option value={key}>{dataset.label}</option>
+                {/each}
+              </select>
+            </div>
+          {/if}
+
+          <div class="form-group mb-2">
             <label class="form-label">Expand Level: {expandLevel}</label>
             <input
               type="range"
@@ -314,10 +671,11 @@
               min="0"
               max="5"
             />
+            <small class="text-muted">How many levels to expand initially (0=collapsed, 5=deep)</small>
           </div>
 
-          <div class="form-group mb-3">
-            <label class="form-label">Batch Size: {batchSize}</label>
+          <div class="form-group mb-2">
+            <label class="form-label">Indexer Batch Size: {batchSize}</label>
             <input
               type="range"
               class="form-range"
@@ -325,10 +683,11 @@
               min="5"
               max="100"
             />
+            <small class="text-muted">Nodes indexed per batch (for search)</small>
           </div>
 
           <div class="form-group mb-3">
-            <label class="form-label">Timeout: {batchTimeout}ms</label>
+            <label class="form-label">Indexer Timeout: {batchTimeout}ms</label>
             <input
               type="range"
               class="form-range"
@@ -336,9 +695,61 @@
               min="10"
               max="200"
             />
+            <small class="text-muted">Delay between index batches (higher = less blocking)</small>
           </div>
 
-          <div class="form-check mb-3">
+          <div class="form-check mb-1">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              bind:checked={useFlatRendering}
+              id="flatRendering"
+            />
+            <label class="form-check-label" for="flatRendering">
+              🆕 Flat Rendering (v4.6.0)
+            </label>
+          </div>
+          <small class="text-muted d-block mb-2 ms-4">Single loop instead of recursive components - 12x faster</small>
+
+          <div class="form-check mb-1">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              bind:checked={progressiveRender}
+              id="progressiveRender"
+            />
+            <label class="form-check-label" for="progressiveRender">
+              🆕 Progressive Render (v4.6.0)
+            </label>
+          </div>
+          <small class="text-muted d-block mb-2 ms-4">Render in batches (20→40→80...) for instant first paint</small>
+
+          {#if progressiveRender}
+            <div class="form-group mb-2">
+              <label class="form-label small">Initial Batch: {initialBatchSize}</label>
+              <input
+                type="range"
+                class="form-range"
+                bind:value={initialBatchSize}
+                min="5"
+                max="100"
+              />
+            </div>
+
+            <div class="form-group mb-3">
+              <label class="form-label small">Max Batch: {maxBatchSize}</label>
+              <input
+                type="range"
+                class="form-range"
+                bind:value={maxBatchSize}
+                min="100"
+                max="1000"
+                step="100"
+              />
+            </div>
+          {/if}
+
+          <div class="form-check mb-1">
             <input
               class="form-check-input"
               type="checkbox"
@@ -346,51 +757,19 @@
               id="virtualization"
             />
             <label class="form-check-label" for="virtualization">
-              Fast Mode (Disable Sorting)
+              Fast Mode (Skip Sorting)
             </label>
           </div>
+          <small class="text-muted d-block mb-3 ms-4">Disables custom sort callback for faster rendering</small>
 
-          <div class="form-group mb-3">
-            <label class="form-label">Search Performance Test</label>
-            <input
-              type="text"
-              class="form-control form-control-sm"
-              bind:value={searchText}
-              placeholder="Type to test search performance"
-            />
-            {#if searchText}
-              <small class="text-muted">
-                {searchResults} results in {searchTime}ms
-              </small>
-            {/if}
-          </div>
+          <button class="btn btn-primary btn-sm w-100" onclick={reloadTree}>
+            🔄 Apply Settings & Reload Tree
+          </button>
         </div>
       {/snippet}
 
       {#snippet descriptionContent()}
         <div class="prose">
-          <h4>Performance Metrics</h4>
-          <div class="metrics-grid">
-            <div class="metric">
-              <strong>Render Time:</strong>
-              {renderTime}ms
-            </div>
-            <div class="metric">
-              <strong>Search Time:</strong>
-              {searchTime}ms
-            </div>
-            <div class="metric">
-              <strong>Items:</strong>
-              {currentData.length}
-            </div>
-            {#if memoryUsage > 0}
-              <div class="metric">
-                <strong>Memory:</strong>
-                {memoryUsage}MB
-              </div>
-            {/if}
-          </div>
-
           <h4>Performance Impact</h4>
           <ul>
             <li>
@@ -444,91 +823,96 @@
 
       {#snippet controlsContent()}
         <CodeBlock
-          codeContent={`// Performance-optimized configuration
+          codeContent={`<script>
+  // 🆕 v4.6.0: CRITICAL - Use $state.raw() for large datasets!
+  // This avoids Svelte's deep proxy overhead (5000x faster)
+  let data = $state.raw(largeDataset);
+
+  // Track rendering progress
+  let isRendering = $state(false);
+</script>
+
+// 🆕 v4.6.0 Performance-optimized configuration
 <Tree
   treeId="performance-optimized-config"
   {data}
   idMember="id"
   pathMember="path"
   displayValueMember="name"
-  
+
+  // 🆕 v4.6.0: Flat rendering (12x faster initial render)
+  useFlatRendering={true}
+
+  // 🆕 v4.6.0: Progressive batching (20→40→80→160...)
+  progressiveRender={true}
+  initialBatchSize={20}    // Instant first paint
+  maxBatchSize={500}       // Cap for large batches
+
+  // Track rendering state
+  bind:isRendering
+  onRenderComplete={() => console.log('Done!')}
+
   // Limit initial expansion
   expandLevel={1}
-  
+
   // Optimize indexing
   shouldUseInternalSearchIndex={true}
-  indexerBatchSize={10}        // Smaller batches
-  indexerTimeout={100}         // Higher timeout
-  
-  // Fast sorting
-  sortCallback={fastSortCallback}
-  
-  // Minimal DOM updates
-  shouldToggleOnNodeClick={false}
+  indexerBatchSize={10}
+  indexerTimeout={100}
 />
 
-// Fast sort callback
-const fastSortCallback = (items) => {
-  // Skip complex sorting for large datasets
-  return items;
-};
+{#if isRendering}
+  <div class="loading">Rendering...</div>
+{/if}
 
-// Debounced search
+// Debounced search for large datasets
 import { debounce } from 'lodash';
 
 const debouncedSearch = debounce((query) => {
   searchText = query;
-}, 300);
-
-// Virtual scrolling (for very large trees)
-const VirtualTree = ({ data, height = 400 }) => {
-  const itemHeight = 32;
-  const visibleItems = Math.ceil(height / itemHeight);
-  
-  // Only render visible items
-  const visibleData = data.slice(startIndex, startIndex + visibleItems);
-  
-  return (
-    <Tree treeId="performance-virtual-scrolling" data={visibleData} ... />
-  );
-};`}
+}, 300);`}
           languageType="svelte"
-          titleText="Performance Configuration"
+          titleText="v4.6.0 Performance Configuration"
         />
       {/snippet}
 
       {#snippet descriptionContent()}
         <div class="prose">
-          <h4>Performance Guidelines</h4>
+          <h4>🆕 v4.6.0 Performance Guidelines</h4>
           <ul>
             <li>
-              <strong>Small datasets (&lt;100):</strong> All optimizations optional
+              <strong>Always use <code>$state.raw()</code></strong> for data arrays with 1000+ items
             </li>
             <li>
-              <strong>Medium datasets (100-1000):</strong> Limit expand level, optimize
-              batching
+              <strong>Flat rendering</strong> is now default and 12x faster
             </li>
             <li>
-              <strong>Large datasets (&gt;1000):</strong> All optimizations recommended
-            </li>
-            <li>
-              <strong>Huge datasets (&gt;10000):</strong> Consider virtual scrolling
+              <strong>Progressive render</strong> gives instant first paint
             </li>
           </ul>
 
-          <h4>Memory Management</h4>
+          <h4>Dataset Size Recommendations</h4>
           <ul>
-            <li>Avoid deep object nesting in data</li>
-            <li>Use string IDs instead of numbers when possible</li>
-            <li>Clean up event listeners</li>
-            <li>Implement data pagination for huge datasets</li>
+            <li>
+              <strong>&lt;100:</strong> All optimizations optional
+            </li>
+            <li>
+              <strong>100-1000:</strong> Use <code>$state.raw()</code>, limit expand level
+            </li>
+            <li>
+              <strong>1000-5000:</strong> All optimizations recommended
+            </li>
+            <li>
+              <strong>&gt;5000:</strong> Consider pagination or lazy loading
+            </li>
           </ul>
 
-          <h4>Browser Limits</h4>
-          <p>
-            Most browsers handle 1000-5000 DOM nodes well. Beyond that, consider
-            virtualization or pagination.
-          </p>
+          <h4>Key v4.6.0 Settings</h4>
+          <ul>
+            <li><code>useFlatRendering={'{'}true{'}'}</code> (default)</li>
+            <li><code>progressiveRender={'{'}true{'}'}</code> (default)</li>
+            <li><code>initialBatchSize={'{'}20{'}'}</code> for instant first paint</li>
+          </ul>
         </div>
       {/snippet}
     </ShowcaseSection>
@@ -551,48 +935,49 @@ const VirtualTree = ({ data, height = 400 }) => {
           </button>
 
           <div class="performance-tips mt-4">
-            <h6>Expected Performance (Desktop)</h6>
+            <h6>Expected Performance with v4.6.0 Flat Rendering</h6>
             <div class="table-responsive">
               <table class="table table-sm">
                 <thead>
                   <tr>
                     <th>Dataset Size</th>
-                    <th>Render Time</th>
+                    <th>First Paint</th>
+                    <th>Full Render</th>
                     <th>Search Time</th>
-                    <th>Memory Usage</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td>100 items</td>
+                    <td class="text-success">&lt; 5ms</td>
                     <td>&lt; 10ms</td>
                     <td>&lt; 1ms</td>
-                    <td>~1MB</td>
                   </tr>
                   <tr>
                     <td>500 items</td>
-                    <td>&lt; 50ms</td>
+                    <td class="text-success">&lt; 5ms</td>
+                    <td>&lt; 30ms</td>
                     <td>&lt; 5ms</td>
-                    <td>~3MB</td>
                   </tr>
                   <tr>
                     <td>1000 items</td>
-                    <td>&lt; 100ms</td>
-                    <td>&lt; 10ms</td>
-                    <td>~5MB</td>
-                  </tr>
-                  <tr class="table-warning">
-                    <td>5000 items</td>
-                    <td>&lt; 500ms</td>
+                    <td class="text-success">&lt; 5ms</td>
                     <td>&lt; 50ms</td>
-                    <td>~20MB</td>
+                    <td>&lt; 10ms</td>
+                  </tr>
+                  <tr class="table-success">
+                    <td>5000 items</td>
+                    <td class="text-success">&lt; 5ms</td>
+                    <td>&lt; 150ms</td>
+                    <td>&lt; 50ms</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <small class="text-muted"
-              >Results may vary based on device performance and browser</small
-            >
+            <small class="text-muted">
+              🆕 v4.6.0: First paint is instant (~20 nodes), then progressive fill-in.
+              Use <code>$state.raw()</code> for these results!
+            </small>
           </div>
         </div>
       {/snippet}

@@ -23,7 +23,7 @@
 	"type": "module",
 	"dependencies": {
 		"@keenmate/svelte-docs": "^1.0.0-rc09",
-		"@keenmate/svelte-treeview": "4.5.0-rc01",
+		"@keenmate/svelte-treeview": "^4.7.0",
 		"bootstrap": "^5.3.8"
 	}
 }

@@ -105,10 +105,22 @@
 								<td><code>''</code></td>
 								<td>Search query string for filtering nodes</td>
 							</tr>
+							<tr class="table-success">
+								<td><code>useFlatRendering</code></td>
+								<td><code>boolean</code></td>
+								<td><code>true</code></td>
+								<td>🆕 v4.6.0: Use flat rendering for better performance</td>
+							</tr>
+							<tr class="table-success">
+								<td><code>progressiveRender</code></td>
+								<td><code>boolean</code></td>
+								<td><code>true</code></td>
+								<td>🆕 v4.6.0: Render nodes progressively in batches</td>
+							</tr>
 						</tbody>
 					</table>
 					<div class="text-muted mt-2">
-						<small>* Required properties</small>
+						<small>* Required properties | <span class="text-success">Green = New in v4.6.0</span></small>
 					</div>
 				</div>
 			{/snippet}

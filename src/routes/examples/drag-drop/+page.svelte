@@ -1,900 +1,435 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { DocLayout, ShowcaseSection, CodeBlock } from '@keenmate/svelte-docs';
-	import { Tree } from '@keenmate/svelte-treeview';
+	import { Tree, type DropPosition, type LTreeNode } from '@keenmate/svelte-treeview';
 
-	// Source data - draggable items
-	const sourceData = [
-		{ id: 's1', path: '1', name: '📋 Task Board', type: 'container', isDraggable: true, isDropAllowed: false },
-		{ id: 's2', path: '1.1', name: '📝 Create User Stories', type: 'task', isDraggable: true, isDropAllowed: false, status: 'todo' },
-		{ id: 's3', path: '1.2', name: '🎨 Design Mockups', type: 'task', isDraggable: true, isDropAllowed: false, status: 'todo' },
-		{ id: 's4', path: '1.3', name: '💻 Frontend Development', type: 'task', isDraggable: true, isDropAllowed: false, status: 'todo' },
-		{ id: 's5', path: '1.4', name: '🔧 Backend API', type: 'task', isDraggable: true, isDropAllowed: false, status: 'todo' },
-		{ id: 's6', path: '1.5', name: '🧪 Testing & QA', type: 'task', isDraggable: true, isDropAllowed: false, status: 'todo' },
-		{ id: 's7', path: '2', name: '📁 Resources', type: 'container', isDraggable: false, isDropAllowed: false },
-		{ id: 's8', path: '2.1', name: '📖 Documentation', type: 'resource', isDraggable: true, isDropAllowed: false },
-		{ id: 's9', path: '2.2', name: '🖼️ Image Assets', type: 'resource', isDraggable: true, isDropAllowed: false },
-		{ id: 's10', path: '2.3', name: '🎯 Brand Guidelines', type: 'resource', isDraggable: true, isDropAllowed: false }
-	];
+	// === Demo Data Types ===
+	type DemoItem = {
+		id: string;
+		path: string;
+		name: string;
+		type: string;
+		isDraggable: boolean;
+		isDropAllowed: boolean;
+		sortOrder: number;
+		allowedDropPositions?: DropPosition[];
+	};
 
-	// Target data - drop zones (sortOrder gives space between items for positioning)
-	let targetData = $state([
-		{ id: 't1', path: '1', name: '📋 Project Status', type: 'container', isDraggable: false, isDropAllowed: true, sortOrder: 10 },
-		{ id: 't2', path: '1.1', name: '🔄 In Progress', type: 'status', isDraggable: false, isDropAllowed: true, sortOrder: 10 },
-		{ id: 't3', path: '1.2', name: '✅ Completed', type: 'status', isDraggable: false, isDropAllowed: true, sortOrder: 20 },
-		{ id: 't4', path: '1.3', name: '🚫 Blocked', type: 'status', isDraggable: false, isDropAllowed: true, sortOrder: 30 },
-		{ id: 't5', path: '2', name: '📁 Team Assignments', type: 'container', isDraggable: false, isDropAllowed: true, sortOrder: 20 },
-		{ id: 't6', path: '2.1', name: '👨‍💻 Frontend Team', type: 'team', isDraggable: false, isDropAllowed: true, sortOrder: 10 },
-		{ id: 't7', path: '2.2', name: '🔧 Backend Team', type: 'team', isDraggable: false, isDropAllowed: true, sortOrder: 20 },
-		{ id: 't8', path: '2.3', name: '🎨 Design Team', type: 'team', isDraggable: false, isDropAllowed: true, sortOrder: 30 }
+	// === Main Demo: Two trees side by side ===
+	let sourceData = $state<DemoItem[]>([
+		{ id: 's1', path: '1', name: '📋 Tasks', type: 'folder', isDraggable: false, isDropAllowed: false, sortOrder: 10 },
+		{ id: 's2', path: '1.1', name: '📝 Design mockups', type: 'task', isDraggable: true, isDropAllowed: false, sortOrder: 10 },
+		{ id: 's3', path: '1.2', name: '💻 Frontend dev', type: 'task', isDraggable: true, isDropAllowed: false, sortOrder: 20 },
+		{ id: 's4', path: '1.3', name: '🔧 Backend API', type: 'task', isDraggable: true, isDropAllowed: false, sortOrder: 30 },
+		{ id: 's5', path: '2', name: '📁 Resources', type: 'folder', isDraggable: false, isDropAllowed: false, sortOrder: 20 },
+		{ id: 's6', path: '2.1', name: '📖 Docs', type: 'resource', isDraggable: true, isDropAllowed: false, sortOrder: 10 },
+		{ id: 's7', path: '2.2', name: '🖼️ Assets', type: 'resource', isDraggable: true, isDropAllowed: false, sortOrder: 20 },
 	]);
 
-	// Simple reorganizable tree data
-	let reorderData = $state([
-		{ id: 'r1', path: '1', name: '📂 Frontend', type: 'folder', isDraggable: true, isDropAllowed: true, sortOrder: 10 },
-		{ id: 'r2', path: '1.1', name: 'components', type: 'folder', isDraggable: true, isDropAllowed: true, sortOrder: 10 },
-		{ id: 'r3', path: '1.1.1', name: 'Button.svelte', type: 'file', isDraggable: true, isDropAllowed: false, sortOrder: 10 },
-		{ id: 'r4', path: '1.1.2', name: 'Tree.svelte', type: 'file', isDraggable: true, isDropAllowed: false, sortOrder: 20 },
-		{ id: 'r5', path: '1.2', name: 'utils', type: 'folder', isDraggable: true, isDropAllowed: true, sortOrder: 20 },
-		{ id: 'r6', path: '1.2.1', name: 'helpers.js', type: 'file', isDraggable: true, isDropAllowed: false, sortOrder: 10 },
-		{ id: 'r7', path: '2', name: '📂 Backend', type: 'folder', isDraggable: true, isDropAllowed: true, sortOrder: 20 },
-		{ id: 'r8', path: '2.1', name: 'api', type: 'folder', isDraggable: true, isDropAllowed: true, sortOrder: 10 },
-		{ id: 'r9', path: '2.1.1', name: 'users.js', type: 'file', isDraggable: true, isDropAllowed: false, sortOrder: 10 }
+	let targetData = $state<DemoItem[]>([
+		{ id: 't1', path: '1', name: '🔄 In Progress', type: 'status', isDraggable: false, isDropAllowed: true, sortOrder: 10 },
+		{ id: 't2', path: '2', name: '✅ Completed', type: 'status', isDraggable: false, isDropAllowed: true, sortOrder: 20 },
+		{ id: 't3', path: '3', name: '🗑️ Trash', type: 'trash', isDraggable: false, isDropAllowed: true, sortOrder: 30, allowedDropPositions: ['child'] },
 	]);
 
-	// Tree reference for target tree
-	let targetTreeRef: Tree<typeof targetData[0]>;
-	let nextTargetId = $state(100);
+	let targetTreeRef: Tree<DemoItem>;
+	let nextId = $state(100);
+	let dropLog = $state<string[]>([]);
 
-	// Event tracking
-	let dragEventLog = $state<string[]>([]);
-	let dropHistory = $state<string[]>([]);
-
-	// Drop zone configuration (DD05)
+	// === Drop Zone Configuration ===
 	let dropZoneMode = $state<'floating' | 'glow'>('glow');
 	let dropZoneLayout = $state<'around' | 'above' | 'below' | 'wave' | 'wave2'>('around');
-	let dropZoneStart = $state<number | string>('33%');
-	let dropZoneMaxWidth = $state(120);
 	let allowCopy = $state(false);
 
-	// Drop zone demo data
-	const dropZoneDemoData = [
-		{ id: 'dz1', path: '1', name: '📁 Documents', type: 'folder', isDraggable: true, isDropAllowed: true, sortOrder: 10 },
-		{ id: 'dz2', path: '1.1', name: '📝 Report.docx', type: 'file', isDraggable: true, isDropAllowed: false, sortOrder: 10 },
-		{ id: 'dz3', path: '1.2', name: '📊 Data.xlsx', type: 'file', isDraggable: true, isDropAllowed: false, sortOrder: 20 },
-		{ id: 'dz4', path: '2', name: '📁 Images', type: 'folder', isDraggable: true, isDropAllowed: true, sortOrder: 20 },
-		{ id: 'dz5', path: '2.1', name: '🖼️ Logo.png', type: 'file', isDraggable: true, isDropAllowed: false, sortOrder: 10 },
-		{ id: 'dz6', path: '2.2', name: '🖼️ Banner.jpg', type: 'file', isDraggable: true, isDropAllowed: false, sortOrder: 20 },
-		{ id: 'dz7', path: '3', name: '📁 Projects', type: 'folder', isDraggable: true, isDropAllowed: true, sortOrder: 30 },
-		{ id: 'dz8', path: '3.1', name: '📂 Website', type: 'folder', isDraggable: true, isDropAllowed: true, sortOrder: 10 },
-		{ id: 'dz9', path: '3.2', name: '📂 Mobile App', type: 'folder', isDraggable: true, isDropAllowed: true, sortOrder: 20 }
-	];
-
-	// Load settings from sessionStorage on mount
+	// Load/save settings
 	onMount(() => {
 		const saved = sessionStorage.getItem('dropZoneConfig');
 		if (saved) {
 			try {
-				const config = JSON.parse(saved);
-				if (config.mode) dropZoneMode = config.mode;
-				if (config.layout) dropZoneLayout = config.layout;
-				if (config.start !== undefined) dropZoneStart = config.start;
-				if (config.maxWidth !== undefined) dropZoneMaxWidth = config.maxWidth;
-				if (config.allowCopy !== undefined) allowCopy = config.allowCopy;
-			} catch (e) {
-				// Ignore invalid JSON
-			}
+				const c = JSON.parse(saved);
+				if (c.mode) dropZoneMode = c.mode;
+				if (c.layout) dropZoneLayout = c.layout;
+				if (c.allowCopy !== undefined) allowCopy = c.allowCopy;
+			} catch {}
 		}
 	});
 
-	// Save settings to sessionStorage when they change
 	$effect(() => {
-		const config = {
-			mode: dropZoneMode,
-			layout: dropZoneLayout,
-			start: dropZoneStart,
-			maxWidth: dropZoneMaxWidth,
-			allowCopy
-		};
-		sessionStorage.setItem('dropZoneConfig', JSON.stringify(config));
+		sessionStorage.setItem('dropZoneConfig', JSON.stringify({ mode: dropZoneMode, layout: dropZoneLayout, allowCopy }));
 	});
 
-	// Drag validation callback
-	const dragValidationCallback = (draggedNode: any, targetNode: any, position: string) => {
-		// Don't allow dropping files INTO files (as children)
-		if (draggedNode.data.type === 'file' && targetNode.data.type === 'file' && position === 'child') {
-			return false;
+	// === Advanced Features Demo ===
+	let advancedData = $state<DemoItem[]>([
+		{ id: 'a1', path: '1', name: '🗑️ Trash (child only)', type: 'trash', isDraggable: false, isDropAllowed: true, sortOrder: 10, allowedDropPositions: ['child'] },
+		{ id: 'a2', path: '1.1', name: 'Deleted file', type: 'file', isDraggable: true, isDropAllowed: false, sortOrder: 10 },
+		{ id: 'a3', path: '2', name: '📁 Folder (all positions)', type: 'folder', isDraggable: true, isDropAllowed: true, sortOrder: 20 },
+		{ id: 'a4', path: '2.1', name: 'Subfolder', type: 'folder', isDraggable: true, isDropAllowed: true, sortOrder: 10 },
+		{ id: 'a5', path: '3', name: '📄 File (above/below only)', type: 'file', isDraggable: true, isDropAllowed: true, sortOrder: 30, allowedDropPositions: ['above', 'below'] },
+		{ id: 'a6', path: '4', name: '📄 Another file', type: 'file', isDraggable: true, isDropAllowed: true, sortOrder: 40, allowedDropPositions: ['above', 'below'] },
+		{ id: 'a7', path: '5', name: '🔵 Drag me', type: 'item', isDraggable: true, isDropAllowed: false, sortOrder: 50 },
+	]);
+
+	let advancedLog = $state<string[]>([]);
+	let asyncPending = $state(false);
+
+	// Callback-based allowed positions (alternative to member)
+	function getAllowedDropPositionsCallback(node: LTreeNode<DemoItem>): DropPosition[] | null | undefined {
+		// Dynamic logic: files can only be reordered, trash only accepts children
+		if (node.data?.type === 'file') return ['above', 'below'];
+		if (node.data?.type === 'trash') return ['child'];
+		return undefined; // All positions allowed
+	}
+
+	// Async beforeDropCallback demo
+	async function beforeDropCallback(
+		dropNode: LTreeNode<DemoItem> | null,
+		draggedNode: LTreeNode<DemoItem>,
+		position: DropPosition,
+		event: DragEvent | TouchEvent,
+		operation: string
+	): Promise<boolean> {
+		// Simulate async confirmation for trash
+		if (dropNode?.data?.type === 'trash') {
+			asyncPending = true;
+			await new Promise(r => setTimeout(r, 800));
+			asyncPending = false;
+			advancedLog = [`⏳ Confirmed move to Trash`, ...advancedLog.slice(0, 4)];
 		}
+		return true;
+	}
 
-		// Don't allow dropping containers into their own children
-		if (targetNode.path.startsWith(draggedNode.path + '.')) {
-			return false;
-		}
-
-		// Allow dropping tasks into status containers (as children)
-		if (draggedNode.data.type === 'task' && targetNode.data.type === 'status') {
-			return true;
-		}
-
-		// Allow dropping resources into team containers (as children)
-		if (draggedNode.data.type === 'resource' && targetNode.data.type === 'team') {
-			return true;
-		}
-
-		// Allow positioning items relative to siblings (above/below for reordering)
-		if (position === 'above' || position === 'below') {
-			// Allow reordering among siblings in status containers
-			if (targetNode.data.type === 'status' || targetNode.data.type === 'task' || targetNode.data.type === 'resource') {
-				return true;
-			}
-			// Allow reordering among siblings in team containers
-			if (targetNode.data.type === 'team') {
-				return true;
-			}
-			// Allow reordering files and folders
-			if (targetNode.data.type === 'file' || targetNode.data.type === 'folder') {
-				return true;
-			}
-		}
-
-		// Allow dropping into containers (as children)
-		if (targetNode.data.type === 'container' && position === 'child') {
-			return true;
-		}
-
-		// Allow folder reorganization
-		if (draggedNode.data.type === 'folder' && targetNode.data.type === 'folder') {
-			return true;
-		}
-
-		// Allow file moves into folders
-		if (draggedNode.data.type === 'file' && targetNode.data.type === 'folder') {
-			return true;
-		}
-
-		return false;
-	};
-
-	// Event handlers
-	const handleDragStart = (node: any, event: DragEvent) => {
-		const message = `🟡 Drag started: ${node.data.name}`;
-		dragEventLog = [message, ...dragEventLog.slice(0, 9)];
-	};
-
-	const handleDragOver = (node: any, event: DragEvent) => {
-		const message = `🔵 Drag over: ${node.data.name}`;
-		dragEventLog = [message, ...dragEventLog.slice(0, 9)];
-	};
-
-	const handleDrop = (dropNode: any, draggedNode: any, position: string, event: DragEvent | TouchEvent, operation: string) => {
-		const targetName = dropNode?.data?.name || 'root';
-		const message = `✅ Dropped: ${draggedNode.data.name} → ${targetName} (${position}, ${operation})`;
-		dragEventLog = [message, ...dragEventLog.slice(0, 9)];
-		dropHistory = [message, ...dropHistory.slice(0, 4)];
-
-		// Determine if this is a cross-tree operation (source → target) or same-tree
-		const isSourceItem = draggedNode.data?.id?.startsWith?.('s');
-		const isTargetItem = draggedNode.data?.id?.startsWith?.('t');
-
-		// Same-tree moves are AUTO-HANDLED by the library when orderMember is set
-		if (isTargetItem) {
-			console.log('=== SAME-TREE MOVE (auto-handled) ===');
-			console.log('Position:', position);
-			console.log('Drop target:', dropNode?.data?.name || 'root');
-			console.log('Library handles sortOrder update automatically via orderMember prop');
-			console.log('=====================================');
-		}
-
-		// Handle cross-tree operation (source → target)
-		if (isSourceItem) {
-			// Cross-tree: Copy from source to target
-			const parentPath = dropNode === null ? '' :
-				(position === 'child' ? dropNode.path : (dropNode.parentPath || ''));
-
-			// Calculate sort order based on position
-			let sortOrder = 10;
-			if (dropNode && position === 'above') {
-				sortOrder = (dropNode.data?.sortOrder ?? 10) - 5;
-			} else if (dropNode && position === 'below') {
-				sortOrder = (dropNode.data?.sortOrder ?? 10) + 5;
-			}
-
-			// Generate new ID for the copied node
-			const newId = `t${nextTargetId++}`;
-
-			const newNodeData = {
-				...draggedNode.data,
-				id: newId,
-				path: '', // Let library calculate
-				sortOrder
-			};
-
-			console.log('=== DROP OPERATION ===');
-			console.log('Position:', position);
-			console.log('Parent path:', parentPath);
-			console.log('Drop target sortOrder:', dropNode?.data?.sortOrder);
-			console.log('Calculated sortOrder:', sortOrder);
-			console.log('Data to add:', newNodeData);
-
-			// Add node to target tree
-			const result = targetTreeRef.addNode(parentPath, newNodeData);
-
-			console.log('Add result:', result);
-			console.log('Result node data:', result.node?.data);
-			console.log('======================')
-
-			if (result.success) {
-				// Update local state to keep in sync
-				targetData = [...targetData, result.node.data];
-			}
-		}
-
-		// Update the tree data for reorder demo
-		if (draggedNode.data?.id?.startsWith?.('r')) {
-			// Same-tree moves are auto-handled by the library
-			console.log('Reorder operation (auto-handled):', { dropNode, draggedNode, position, operation });
-		}
-	};
-
-	// Helper function to get level from path
-	const getLevel = (path: string) => path.split('.').length;
-
-	// Sort callbacks
-	const sortCallback = (items: any[]) => {
-		console.log('=== SORT ===', items.map(i => `${i.data.name}(so:${i.data.sortOrder ?? 'none'})`).join(', '));
+	// === Handlers ===
+	function sortCallback(items: LTreeNode<DemoItem>[]) {
 		return items.sort((a, b) => {
-			// First by level (depth in tree)
-			const levelA = getLevel(a.path);
-			const levelB = getLevel(b.path);
-			if (levelA !== levelB) {
-				return levelA - levelB;
-			}
-
-			// Then by sortOrder (for drag-drop positioning) - this takes priority!
-			const sortOrderA = a.data.sortOrder;
-			const sortOrderB = b.data.sortOrder;
-			// If either has explicit sortOrder, use it for sorting
-			if (sortOrderA !== undefined || sortOrderB !== undefined) {
-				return (sortOrderA ?? 10) - (sortOrderB ?? 10);
-			}
-
-			// Then by type priority (only for items without explicit sortOrder)
-			if (a.data.type !== b.data.type) {
-				const typeOrder = { container: 0, folder: 1, status: 2, team: 3, task: 4, resource: 5, file: 6 };
-				return (typeOrder[a.data.type] || 999) - (typeOrder[b.data.type] || 999);
-			}
-
-			// Finally by name as fallback
-			return a.data.name.localeCompare(b.data.name);
+			const levelA = a.path.split('.').length;
+			const levelB = b.path.split('.').length;
+			if (levelA !== levelB) return levelA - levelB;
+			return (a.data?.sortOrder ?? 0) - (b.data?.sortOrder ?? 0);
 		});
-	};
+	}
+
+	function handleMainDrop(dropNode: LTreeNode<DemoItem> | null, draggedNode: LTreeNode<DemoItem>, position: DropPosition, event: DragEvent | TouchEvent, operation: string) {
+		const msg = `${operation === 'copy' ? '📋' : '➡️'} ${draggedNode.data?.name} → ${dropNode?.data?.name || 'root'} (${position})`;
+		dropLog = [msg, ...dropLog.slice(0, 4)];
+
+		// Cross-tree: add to target
+		if (draggedNode.data?.id?.startsWith('s')) {
+			const parentPath = dropNode === null ? '' : (position === 'child' ? dropNode.path : (dropNode.parentPath || ''));
+			const sortOrder = dropNode?.data?.sortOrder ?? 10;
+			targetTreeRef.addNode(parentPath, {
+				...draggedNode.data,
+				id: `t${nextId++}`,
+				path: '',
+				sortOrder: position === 'above' ? sortOrder - 5 : sortOrder + 5
+			});
+		}
+	}
+
+	function handleAdvancedDrop(dropNode: LTreeNode<DemoItem> | null, draggedNode: LTreeNode<DemoItem>, position: DropPosition) {
+		const restriction = dropNode?.data?.allowedDropPositions?.join('/') || 'all';
+		advancedLog = [`✅ ${draggedNode.data?.name} → ${dropNode?.data?.name} (${position}) [${restriction}]`, ...advancedLog.slice(0, 4)];
+	}
 </script>
 
 <DocLayout
-	titleText="Drag & Drop Examples"
-	descriptionText="Interactive drag and drop functionality with validation and visual feedback">
+	titleText="Drag & Drop"
+	descriptionText="Interactive drag and drop with visual feedback, validation, and position control">
 
 	<div class="py-1">
-		<!-- Basic Drag & Drop -->
+		<!-- Main Interactive Demo -->
 		<ShowcaseSection
-			titleText="DD01 Basic Drag & Drop"
-			subtitleText="Simple drag and drop between two trees"
-			col1Title="Interactive Demo"
-			col2Title="Event Log"
+			titleText="Interactive Demo"
+			subtitleText="Drag between trees with configurable drop zones"
+			col1Title="Demo"
+			col2Title="Controls"
 			col3Title="Features">
 
 			{#snippet demoContent()}
-				<div class="row">
-					<div class="col-md-6">
-						<h6 class="text-primary mb-3">📝 Available Tasks & Resources</h6>
-						<div class="tree-demo" style="min-height: 300px;">
+				<div class="row g-2">
+					<div class="col-6">
+						<div class="small text-muted mb-1">Source (drag from here)</div>
+						<div class="tree-demo" style="min-height: 200px;">
 							<Tree
-								treeId="drag-drop-source-tasks"
+								treeId="source"
 								data={sourceData}
 								idMember="id"
 								pathMember="path"
 								displayValueMember="name"
-								isDragAndDropEnabled={true}
-								{dragValidationCallback}
+								orderMember="sortOrder"
 								{sortCallback}
 								expandLevel={3}
-								shouldToggleOnNodeClick={true}
-								onNodeDragStart={handleDragStart}
-								onNodeDragOver={handleDragOver}
-								onNodeDrop={handleDrop}
+								{dropZoneMode}
+								{dropZoneLayout}
+								{allowCopy}
 							/>
 						</div>
 					</div>
-					<div class="col-md-6">
-						<h6 class="text-success mb-3">🎯 Project Organization</h6>
-						<div class="tree-demo" style="min-height: 300px;">
+					<div class="col-6">
+						<div class="small text-muted mb-1">Target (drop here) - Trash only accepts 'child'</div>
+						<div class="tree-demo" style="min-height: 200px;">
 							<Tree
 								bind:this={targetTreeRef}
-								treeId="drag-drop-target-organization"
+								treeId="target"
 								data={targetData}
 								idMember="id"
 								pathMember="path"
 								displayValueMember="name"
 								orderMember="sortOrder"
-								isDragAndDropEnabled={true}
-								{dragValidationCallback}
+								allowedDropPositionsMember="allowedDropPositions"
 								{sortCallback}
 								expandLevel={3}
-								shouldToggleOnNodeClick={true}
-								onNodeDragStart={handleDragStart}
-								onNodeDragOver={handleDragOver}
-								onNodeDrop={handleDrop}
+								{dropZoneMode}
+								{dropZoneLayout}
+								{allowCopy}
+								onNodeDrop={handleMainDrop}
 							/>
 						</div>
 					</div>
 				</div>
+				{#if dropLog.length > 0}
+					<div class="mt-2 small font-monospace bg-light p-2 rounded">
+						{#each dropLog as log}<div>{log}</div>{/each}
+					</div>
+				{/if}
 			{/snippet}
 
 			{#snippet controlsContent()}
 				<div class="tree-controls">
-					<h6>Real-time Events</h6>
-					<div class="event-log" style="max-height: 200px; overflow-y: auto;">
-						{#if dragEventLog.length > 0}
-							{#each dragEventLog as event}
-								<div class="small font-monospace mb-1 p-2 bg-light rounded">{event}</div>
-							{/each}
-						{:else}
-							<div class="text-muted">Start dragging to see events</div>
-						{/if}
-					</div>
-
-					<h6 class="mt-3">Drop History</h6>
-					<div class="drop-history">
-						{#if dropHistory.length > 0}
-							{#each dropHistory as drop}
-								<div class="small text-success mb-1">{drop}</div>
-							{/each}
-						{:else}
-							<div class="text-muted">No drops yet</div>
-						{/if}
-					</div>
-				</div>
-			{/snippet}
-
-			{#snippet descriptionContent()}
-				<div class="prose">
-					<h4>Drag & Drop Features</h4>
-					<ul>
-						<li><strong>Visual feedback</strong> during drag operations</li>
-						<li><strong>Drop validation</strong> with custom rules</li>
-						<li><strong>Real-time events</strong> for state management</li>
-						<li><strong>Cross-tree</strong> drag and drop support</li>
-					</ul>
-
-					<h4>Try This</h4>
-					<ul>
-						<li>Drag tasks from left tree to status containers on right</li>
-						<li>Drag resources to team assignments</li>
-						<li>Notice validation prevents invalid drops</li>
-					</ul>
-
-					<h4>Validation Rules</h4>
-					<ul>
-						<li>Tasks → Status containers ✅</li>
-						<li>Resources → Team containers ✅</li>
-						<li>Files → Files ❌</li>
-						<li>Parent → Child ❌</li>
-					</ul>
-				</div>
-			{/snippet}
-		</ShowcaseSection>
-
-		<!-- Tree Reorganization -->
-		<ShowcaseSection
-			titleText="DD02 Tree Reorganization"
-			subtitleText="Reorder and reorganize tree structure"
-			col1Title="File System Tree"
-			col2Title="Implementation"
-			col3Title="Reorganization">
-
-			{#snippet demoContent()}
-				<div class="tree-demo">
-					<Tree
-						treeId="drag-drop-reorganization"
-						data={reorderData}
-						idMember="id"
-						pathMember="path"
-						displayValueMember="name"
-						orderMember="sortOrder"
-						isDragAndDropEnabled={true}
-						{dragValidationCallback}
-						{sortCallback}
-						expandLevel={4}
-						shouldToggleOnNodeClick={true}
-						onNodeDragStart={handleDragStart}
-						onNodeDrop={handleDrop}
-					/>
-				</div>
-			{/snippet}
-
-			{#snippet controlsContent()}
-				<CodeBlock
-					codeContent={`// Drag validation callback
-const dragValidationCallback = (draggedNode, targetNode, position) => {
-  // Don't allow dropping files into files
-  if (draggedNode.data.type === 'file' && targetNode.data.type === 'file') {
-    return false;
-  }
-
-  // Don't allow dropping containers into their own children
-  if (targetNode.path.startsWith(draggedNode.path + '.')) {
-    return false;
-  }
-
-  // Allow folder reorganization
-  if (draggedNode.data.type === 'folder' && targetNode.data.type === 'folder') {
-    return true;
-  }
-
-  // Allow file moves into folders
-  if (draggedNode.data.type === 'file' && targetNode.data.type === 'folder') {
-    return true;
-  }
-
-  return false;
-};`}
-					languageType="javascript"
-					titleText="Validation Logic"
-				/>
-			{/snippet}
-
-			{#snippet descriptionContent()}
-				<div class="prose">
-					<h4>Reorganization Features</h4>
-					<ul>
-						<li><strong>Folder reordering</strong> - Move folders around</li>
-						<li><strong>File organization</strong> - Move files between folders</li>
-						<li><strong>Hierarchy validation</strong> - Prevent circular dependencies</li>
-						<li><strong>Type-based rules</strong> - Files can't contain other items</li>
-					</ul>
-
-					<h4>Try This</h4>
-					<ul>
-						<li>Move files between folders</li>
-						<li>Reorder folders within the same level</li>
-						<li>Try invalid moves to see validation</li>
-					</ul>
-
-					<h4>Use Cases</h4>
-					<ul>
-						<li>File managers</li>
-						<li>Project organizers</li>
-						<li>Menu builders</li>
-						<li>Category managers</li>
-					</ul>
-				</div>
-			{/snippet}
-		</ShowcaseSection>
-
-		<!-- Configuration Options -->
-		<ShowcaseSection
-			titleText="DD03 Configuration Options"
-			subtitleText="Customize drag & drop behavior"
-			col1Title="Configuration Properties"
-			col2Title="Event Handling"
-			col3Title="Customization">
-
-			{#snippet demoContent()}
-				<div class="table-responsive">
-					<table class="table table-striped">
-						<thead>
-							<tr>
-								<th>Property</th>
-								<th>Type</th>
-								<th>Default</th>
-								<th>Description</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td><code>isDragAndDropEnabled</code></td>
-								<td><code>boolean</code></td>
-								<td><code>false</code></td>
-								<td>Enable drag & drop functionality</td>
-							</tr>
-							<tr>
-								<td><code>dragValidationCallback</code></td>
-								<td><code>Function</code></td>
-								<td><code>undefined</code></td>
-								<td>Validate drop operations</td>
-							</tr>
-							<tr>
-								<td><code>dragHighlightClass</code></td>
-								<td><code>string</code></td>
-								<td><code>""</code></td>
-								<td>CSS class for drag highlights</td>
-							</tr>
-							<tr>
-								<td><code>isDraggableMember</code></td>
-								<td><code>string</code></td>
-								<td><code>"isDraggable"</code></td>
-								<td>Property name for draggable flag</td>
-							</tr>
-							<tr>
-								<td><code>isDropAllowedMember</code></td>
-								<td><code>string</code></td>
-								<td><code>"isDropAllowed"</code></td>
-								<td>Property name for drop allowed flag</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			{/snippet}
-
-			{#snippet controlsContent()}
-				<CodeBlock
-					codeContent={`<Tree
-  {data}
-  idMember="id"
-  pathMember="path"
-  displayValueMember="name"
-
-  // Drag & Drop Configuration
-  isDragAndDropEnabled={true}
-  dragValidationCallback={validateDrop}
-  dragHighlightClass="custom-highlight"
-  isDraggableMember="canDrag"
-  isDropAllowedMember="canDrop"
-
-  // Event Handlers
-  onNodeDragStart={handleDragStart}
-  onNodeDragOver={handleDragOver}
-  onNodeDrop={handleDrop}
-/>`}
-					languageType="svelte"
-					titleText="Complete Configuration"
-				/>
-			{/snippet}
-
-			{#snippet descriptionContent()}
-				<div class="prose">
-					<h4>Validation Callback</h4>
-					<p>
-						The validation function receives <code>draggedNode</code>, <code>targetNode</code>,
-						and <code>position</code> parameters. Return <code>true</code> to allow the drop.
-					</p>
-
-					<h4>Event Sequence</h4>
-					<ol>
-						<li><code>onNodeDragStart</code> - User starts dragging</li>
-						<li><code>onNodeDragOver</code> - Dragging over potential targets</li>
-						<li><code>onNodeDrop</code> - Item dropped (if validation passes)</li>
-					</ol>
-
-					<h4>Data Properties</h4>
-					<p>
-						Use <code>isDraggable</code> and <code>isDropAllowed</code> properties
-						in your data to control which nodes can be dragged or accept drops.
-					</p>
-				</div>
-			{/snippet}
-		</ShowcaseSection>
-
-		<!-- v4.5.0 Features Section -->
-		<ShowcaseSection
-			titleText="DD04 🆕 v4.5.0 Features"
-			subtitleText="New drag-drop capabilities: touch support, drop positions, glow mode, and more"
-			col1Title="New Properties"
-			col2Title="Usage Examples"
-			col3Title="Feature Guide">
-
-			{#snippet demoContent()}
-				<div class="table-responsive">
-					<table class="table table-hover">
-						<thead class="table-dark">
-							<tr>
-								<th style="width: 30%">Property</th>
-								<th style="width: 20%">Type</th>
-								<th style="width: 50%">Description</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr class="table-info">
-								<td><code>dragDropMode</code></td>
-								<td><code>string</code></td>
-								<td>'none' | 'self' | 'cross' | 'both' - Control where drops are allowed</td>
-							</tr>
-							<tr class="table-info">
-								<td><code>dragOverNodeClass</code></td>
-								<td><code>string</code></td>
-								<td>CSS class for drag-over feedback. Use 'ltree-dragover-glow' for position arrows</td>
-							</tr>
-							<tr class="table-info">
-								<td><code>orderMember</code></td>
-								<td><code>string</code></td>
-								<td>Property name for sibling sort order (e.g., "sortOrder")</td>
-							</tr>
-							<tr class="table-success">
-								<td><code>dropZoneLayout</code></td>
-								<td><code>string</code></td>
-								<td>'around' | 'above' | 'below' | 'wave' | 'wave2' - Drop zone arrangement</td>
-							</tr>
-							<tr class="table-success">
-								<td><code>dropZoneStart</code></td>
-								<td><code>number</code></td>
-								<td>Horizontal start position for drop zones (default: 33%)</td>
-							</tr>
-							<tr class="table-warning">
-								<td><code>isLoading</code></td>
-								<td><code>boolean</code></td>
-								<td>Show loading overlay during async operations</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				<div class="alert alert-success mt-3 small">
-					<strong>📱 Touch Support:</strong> Touch drag-drop is enabled by default with 300ms long-press activation.
-				</div>
-			{/snippet}
-
-			{#snippet controlsContent()}
-				<CodeBlock
-					codeContent={`<!-- v4.5.0 Enhanced Drag & Drop -->
-<Tree
-  bind:this={treeRef}
-  treeId="enhanced-drag"
-  data={treeData}
-  idMember="id"
-  pathMember="path"
-  displayValueMember="name"
-  isDragAndDropEnabled={true}
-
-  <!-- NEW: Control cross-tree behavior -->
-  dragDropMode="both"
-
-  <!-- NEW: Glow mode with position arrows -->
-  dragOverNodeClass="ltree-dragover-glow"
-
-  <!-- NEW: Sibling ordering -->
-  orderMember="sortOrder"
-
-  <!-- NEW: Loading state -->
-  isLoading={isSaving}
-
-  <!-- UPDATED: onNodeDrop now includes position -->
-  onNodeDrop={handleDrop}
->
-  <!-- NEW: Empty tree drop zone -->
-  {#snippet dropPlaceholder()}
-    <div class="drop-placeholder">
-      <p>📥 Drag items here</p>
-    </div>
-  {/snippet}
-</Tree>
-
-<script>
-  let isSaving = $state(false);
-
-  // UPDATED: Drop handler now receives position and operation
-  async function handleDrop(dropNode, draggedNode, position, event, operation) {
-    // position: 'above' | 'below' | 'child'
-    // operation: 'move' | 'copy'
-    // dropNode: null when dropping to empty tree
-
-    console.log(\`\${operation}: \${draggedNode.data.name} \${position} \${dropNode?.data?.name || 'root'}\`);
-
-    isSaving = true;
-    try {
-      await saveToDatabase(draggedNode, dropNode, position, operation);
-    } finally {
-      isSaving = false;
-    }
-  }
-</script>`}
-					languageType="svelte"
-					titleText="v4.5.0 Configuration"
-				/>
-			{/snippet}
-
-			{#snippet descriptionContent()}
-				<div class="prose">
-					<h6>🎯 Drop Positions</h6>
-					<p>The <code>position</code> parameter tells you where to insert:</p>
-					<ul class="small">
-						<li><code>'above'</code> - As sibling before target</li>
-						<li><code>'below'</code> - As sibling after target</li>
-						<li><code>'child'</code> - As child of target</li>
-					</ul>
-
-					<h6>🌟 Glow Mode</h6>
-					<p>Use <code>dragOverNodeClass="ltree-dragover-glow"</code> for visual position indicators with directional arrows.</p>
-
-					<h6>📱 Touch Drag</h6>
-					<ul class="small">
-						<li>Long-press (300ms) starts drag</li>
-						<li>Ghost element follows finger</li>
-						<li>Haptic feedback on start</li>
-					</ul>
-
-					<h6>🔄 dragDropMode</h6>
-					<ul class="small">
-						<li><code>'self'</code> - Same tree only</li>
-						<li><code>'cross'</code> - Between trees only</li>
-						<li><code>'both'</code> - All operations (default)</li>
-						<li><code>'none'</code> - Disable drag-drop</li>
-					</ul>
-				</div>
-			{/snippet}
-		</ShowcaseSection>
-
-		<!-- Drop Zone Styles -->
-		<ShowcaseSection
-			titleText="DD05 Drop Zone Styles"
-			subtitleText="Configure visual drop zone appearance with session storage persistence"
-			col1Title="Interactive Demo"
-			col2Title="Configuration"
-			col3Title="Style Options">
-
-			{#snippet demoContent()}
-				<div class="tree-demo">
-					<div class="alert alert-info mb-3">
-						<strong>💡 Try this:</strong> Drag items around and see different drop zone styles. Settings persist in session storage!
-					</div>
-					<Tree
-						treeId="drop-zone-demo"
-						data={dropZoneDemoData}
-						idMember="id"
-						pathMember="path"
-						displayValueMember="name"
-						orderMember="sortOrder"
-						isDragAndDropEnabled={true}
-						{dragValidationCallback}
-						{sortCallback}
-						expandLevel={3}
-						shouldToggleOnNodeClick={true}
-						{dropZoneMode}
-						{dropZoneLayout}
-						{dropZoneStart}
-						{dropZoneMaxWidth}
-						{allowCopy}
-					/>
-				</div>
-			{/snippet}
-
-			{#snippet controlsContent()}
-				<div class="tree-controls">
-					<div class="form-group mb-3">
-						<label class="form-label" for="dropZoneModeSelect">Drop Zone Mode</label>
-						<select id="dropZoneModeSelect" class="form-select" bind:value={dropZoneMode}>
+					<div class="mb-2">
+						<label class="form-label small mb-1">Drop Zone Mode</label>
+						<select class="form-select form-select-sm" bind:value={dropZoneMode}>
 							<option value="glow">Glow (border indicators)</option>
-							<option value="floating">Floating (popup zones)</option>
+							<option value="floating">Floating (popup buttons)</option>
 						</select>
-						<small class="text-muted">
-							{dropZoneMode === 'glow' ? 'Shows glowing borders on hover' : 'Shows floating drop target buttons'}
-						</small>
 					</div>
-
 					{#if dropZoneMode === 'floating'}
-						<div class="form-group mb-3">
-							<label class="form-label" for="dropZoneLayoutSelect">Layout</label>
-							<select id="dropZoneLayoutSelect" class="form-select" bind:value={dropZoneLayout}>
-								<option value="around">Around (above + below/child)</option>
-								<option value="above">Above (all 3 in row above)</option>
-								<option value="below">Below (all 3 in row below)</option>
-								<option value="wave">Wave (stacked vertically)</option>
-								<option value="wave2">Wave2 (diagonal pattern)</option>
+						<div class="mb-2">
+							<label class="form-label small mb-1">Layout</label>
+							<select class="form-select form-select-sm" bind:value={dropZoneLayout}>
+								<option value="around">Around</option>
+								<option value="above">Above</option>
+								<option value="below">Below</option>
+								<option value="wave">Wave</option>
+								<option value="wave2">Wave2</option>
 							</select>
 						</div>
-
-						<div class="form-group mb-3">
-							<label class="form-label" for="dropZoneStartInput">Zone Start</label>
-							<input
-								id="dropZoneStartInput"
-								type="text"
-								class="form-control form-control-sm"
-								bind:value={dropZoneStart}
-								placeholder="33% or 50px"
-							/>
-							<small class="text-muted">Horizontal start position (e.g., "33%" or "50px")</small>
-						</div>
-
-						<div class="form-group mb-3">
-							<label class="form-label" for="dropZoneMaxWidthInput">Max Width (px)</label>
-							<input
-								id="dropZoneMaxWidthInput"
-								type="number"
-								class="form-control form-control-sm"
-								bind:value={dropZoneMaxWidth}
-								min="50"
-								max="300"
-							/>
-						</div>
 					{/if}
-
-					<div class="form-check mb-3">
-						<input
-							id="allowCopyCheck"
-							type="checkbox"
-							class="form-check-input"
-							bind:checked={allowCopy}
-						/>
-						<label class="form-check-label" for="allowCopyCheck">
-							Allow Ctrl+drag to copy
-						</label>
-					</div>
-
-					<div class="alert alert-success small">
-						<strong>💾 Session Storage:</strong> Settings are automatically saved and restored when you revisit this page.
+					<div class="form-check">
+						<input type="checkbox" class="form-check-input" id="allowCopy" bind:checked={allowCopy} />
+						<label class="form-check-label small" for="allowCopy">Ctrl+drag to copy</label>
 					</div>
 				</div>
 			{/snippet}
 
 			{#snippet descriptionContent()}
-				<div class="prose">
-					<h4>Drop Zone Modes</h4>
-					<ul>
-						<li><strong>Glow:</strong> Shows glowing border indicators (above/below/child arrows)</li>
-						<li><strong>Floating:</strong> Shows popup buttons for drop positions</li>
+				<div class="prose small">
+					<h6>Drop Positions</h6>
+					<ul class="mb-2">
+						<li><code>above</code> - Insert as sibling before</li>
+						<li><code>below</code> - Insert as sibling after</li>
+						<li><code>child</code> - Insert as child</li>
 					</ul>
-
-					<h4>Floating Layouts</h4>
-					<ul>
-						<li><strong>Around:</strong> Above indicator on top, below/child on bottom</li>
-						<li><strong>Above:</strong> All three indicators in a row above the node</li>
-						<li><strong>Below:</strong> All three indicators in a row below the node</li>
-						<li><strong>Wave:</strong> Stacked vertically on the right</li>
-						<li><strong>Wave2:</strong> Diagonal pattern arrangement</li>
+					<h6>Key Props</h6>
+					<ul class="mb-2">
+						<li><code>dropZoneMode</code> - 'glow' | 'floating'</li>
+						<li><code>allowCopy</code> - Enable Ctrl+drag</li>
+						<li><code>orderMember</code> - Sibling sort order</li>
 					</ul>
-
-					<h4>Persistence</h4>
-					<p>
-						Settings are saved to <code>sessionStorage</code> automatically.
-						Refresh the page to verify persistence!
-					</p>
+					<h6>Touch Support</h6>
+					<p class="mb-0">Long-press (300ms) to drag on mobile.</p>
 				</div>
 			{/snippet}
 		</ShowcaseSection>
 
-		<!-- D&D Scenarios -->
-		<div class="mt-5">
-			<div class="card bg-light border-primary">
-				<div class="card-body text-center">
-					<div class="display-5 mb-2">💼</div>
-					<h3>D&D Scenarios</h3>
-					<p class="mb-3">Real-world tree manipulation workflows with database integration patterns. Learn when to use full redraw, partial updates, CRUD operations, and batch saves.</p>
-					<a href="/examples/drag-drop-scenarios" class="btn btn-primary btn-lg">View D&D Scenarios</a>
-				</div>
-			</div>
-		</div>
+		<!-- Advanced Features -->
+		<ShowcaseSection
+			titleText="Advanced Features"
+			subtitleText="Restricted positions, async callbacks, and dynamic rules"
+			col1Title="Demo"
+			col2Title="Code"
+			col3Title="Details">
 
-		<!-- Next Steps -->
-		<div class="mt-5">
-			<h2 class="mb-4">Related Examples</h2>
-			<div class="row g-4">
-				<div class="col-md-4">
-					<div class="card text-center h-100">
-						<div class="card-body">
-							<div class="display-6 mb-3">✨</div>
-							<h5>Drag Highlight</h5>
-							<p>Visual feedback during drag operations</p>
-							<a href="/examples/drag-highlight" class="btn btn-primary">View Highlights</a>
+			{#snippet demoContent()}
+				<div class="tree-demo position-relative">
+					{#if asyncPending}
+						<div class="position-absolute top-0 start-0 end-0 bottom-0 bg-white bg-opacity-75 d-flex align-items-center justify-content-center" style="z-index: 10;">
+							<div class="spinner-border spinner-border-sm me-2"></div> Confirming...
 						</div>
+					{/if}
+					<div class="alert alert-info small py-1 px-2 mb-2">
+						<strong>Try:</strong> 🗑️ Trash = child only | 📁 Folder = all | 📄 File = above/below only
+					</div>
+					<Tree
+						treeId="advanced"
+						data={advancedData}
+						idMember="id"
+						pathMember="path"
+						displayValueMember="name"
+						orderMember="sortOrder"
+						getAllowedDropPositionsCallback={getAllowedDropPositionsCallback}
+						{beforeDropCallback}
+						{sortCallback}
+						expandLevel={3}
+						{dropZoneMode}
+						onNodeDrop={handleAdvancedDrop}
+					>
+						{#snippet nodeTemplate(node)}
+							<span>{node.data?.name}</span>
+							{#if node.data?.allowedDropPositions}
+								<small class="text-muted ms-1" style="font-size: 0.65em;">
+									({node.data.allowedDropPositions.join('/')})
+								</small>
+							{/if}
+						{/snippet}
+					</Tree>
+					{#if advancedLog.length > 0}
+						<div class="mt-2 small font-monospace">
+							{#each advancedLog as log}<div class="text-success">{log}</div>{/each}
+						</div>
+					{/if}
+				</div>
+			{/snippet}
+
+			{#snippet controlsContent()}
+				<CodeBlock
+					codeContent={`// Option 1: Member property (from server data)
+const data = [
+  { name: 'Trash', allowedDropPositions: ['child'] },
+  { name: 'File', allowedDropPositions: ['above', 'below'] },
+  { name: 'Folder' }, // undefined = all allowed
+];
+<Tree allowedDropPositionsMember="allowedDropPositions" />
+
+// Option 2: Callback (dynamic logic)
+function getAllowedDropPositionsCallback(node) {
+  if (node.data?.type === 'file') return ['above', 'below'];
+  if (node.data?.type === 'trash') return ['child'];
+  return undefined; // All positions
+}
+<Tree getAllowedDropPositionsCallback={callback} />
+
+// Async beforeDropCallback (v4.6.0)
+async function beforeDropCallback(dropNode, draggedNode, position, event, operation) {
+  if (dropNode?.data?.isTrash) {
+    const confirmed = await showConfirmDialog('Move to trash?');
+    return confirmed; // false cancels drop
+  }
+  return true;
+}`}
+					languageType="typescript"
+					titleText="Restricted Positions & Async"
+				/>
+			{/snippet}
+
+			{#snippet descriptionContent()}
+				<div class="prose small">
+					<h6>allowedDropPositions</h6>
+					<p>Restrict which positions are valid per node:</p>
+					<ul class="mb-2">
+						<li><code>['child']</code> - Trash folders</li>
+						<li><code>['above', 'below']</code> - Files (no nesting)</li>
+						<li><code>undefined</code> - All allowed (default)</li>
+					</ul>
+
+					<h6>Two Ways to Set</h6>
+					<ul class="mb-2">
+						<li><code>allowedDropPositionsMember</code> - Static from data</li>
+						<li><code>getAllowedDropPositionsCallback</code> - Dynamic logic</li>
+					</ul>
+
+					<h6>beforeDropCallback</h6>
+					<p class="mb-0">Async validation before drop. Return <code>false</code> to cancel, or modify position/operation.</p>
+				</div>
+			{/snippet}
+		</ShowcaseSection>
+
+		<!-- API Reference -->
+		<ShowcaseSection
+			titleText="API Reference"
+			subtitleText="All drag & drop related properties"
+			col1Title="Properties"
+			col2Title="Events"
+			col3Title="Data Properties">
+
+			{#snippet demoContent()}
+				<div class="table-responsive">
+					<table class="table table-sm small">
+						<thead><tr><th>Prop</th><th>Type</th><th>Description</th></tr></thead>
+						<tbody>
+							<tr><td><code>dropZoneMode</code></td><td>'glow' | 'floating'</td><td>Visual style for drop indicators</td></tr>
+							<tr><td><code>dropZoneLayout</code></td><td>string</td><td>Floating layout: around, above, below, wave, wave2</td></tr>
+							<tr><td><code>allowCopy</code></td><td>boolean</td><td>Enable Ctrl+drag to copy</td></tr>
+							<tr><td><code>autoHandleCopy</code></td><td>boolean</td><td>Auto-handle same-tree copy (default: true)</td></tr>
+							<tr><td><code>dragDropMode</code></td><td>string</td><td>none | self | cross | both</td></tr>
+							<tr><td><code>orderMember</code></td><td>string</td><td>Data property for sibling sort order</td></tr>
+							<tr><td><code>allowedDropPositionsMember</code></td><td>string</td><td>Data property for allowed positions array</td></tr>
+							<tr><td><code>getAllowedDropPositionsCallback</code></td><td>function</td><td>Dynamic allowed positions per node</td></tr>
+						</tbody>
+					</table>
+				</div>
+			{/snippet}
+
+			{#snippet controlsContent()}
+				<div class="table-responsive">
+					<table class="table table-sm small">
+						<thead><tr><th>Event</th><th>Parameters</th></tr></thead>
+						<tbody>
+							<tr><td><code>onNodeDragStart</code></td><td>(node, event)</td></tr>
+							<tr><td><code>onNodeDragOver</code></td><td>(node, event)</td></tr>
+							<tr><td><code>beforeDropCallback</code></td><td>(dropNode, draggedNode, position, event, operation) → bool | Promise</td></tr>
+							<tr><td><code>onNodeDrop</code></td><td>(dropNode, draggedNode, position, event, operation)</td></tr>
+						</tbody>
+					</table>
+					<div class="alert alert-info small py-1 px-2 mt-2">
+						<strong>Position:</strong> 'above' | 'below' | 'child'<br/>
+						<strong>Operation:</strong> 'move' | 'copy'
 					</div>
 				</div>
-				<div class="col-md-4">
-					<div class="card text-center h-100">
-						<div class="card-body">
-							<div class="display-6 mb-3">📝</div>
-							<h5>Context Menus</h5>
-							<p>Right-click actions and custom templates</p>
-							<a href="/examples/context-menu" class="btn btn-outline-primary">Context Menus</a>
-						</div>
+			{/snippet}
+
+			{#snippet descriptionContent()}
+				<div class="table-responsive">
+					<table class="table table-sm small">
+						<thead><tr><th>Data Property</th><th>Type</th><th>Description</th></tr></thead>
+						<tbody>
+							<tr><td><code>isDraggable</code></td><td>boolean</td><td>Can this node be dragged?</td></tr>
+							<tr><td><code>isDropAllowed</code></td><td>boolean</td><td>Can drop on this node?</td></tr>
+							<tr><td><code>allowedDropPositions</code></td><td>DropPosition[]</td><td>['above', 'below', 'child']</td></tr>
+						</tbody>
+					</table>
+					<div class="alert alert-warning small py-1 px-2 mt-2">
+						<strong>Tip:</strong> Use <code>isDraggableMember</code> and <code>isDropAllowedMember</code> props to map custom property names.
 					</div>
 				</div>
+			{/snippet}
+		</ShowcaseSection>
+
+		<!-- Related Links -->
+		<div class="mt-3">
+			<div class="row g-2">
 				<div class="col-md-4">
-					<div class="card text-center h-100">
-						<div class="card-body">
-							<div class="display-6 mb-3">⚡</div>
-							<h5>Performance</h5>
-							<p>Optimize for large datasets</p>
-							<a href="/examples/performance" class="btn btn-outline-primary">Performance Tips</a>
+					<a href="/examples/drag-drop-scenarios" class="card text-decoration-none h-100">
+						<div class="card-body text-center py-2">
+							<div class="h5 mb-1">💼</div>
+							<div class="small">D&D Scenarios</div>
 						</div>
-					</div>
+					</a>
+				</div>
+				<div class="col-md-4">
+					<a href="/examples/drag-highlight" class="card text-decoration-none h-100">
+						<div class="card-body text-center py-2">
+							<div class="h5 mb-1">✨</div>
+							<div class="small">Drag Highlight</div>
+						</div>
+					</a>
+				</div>
+				<div class="col-md-4">
+					<a href="/examples/tree-editor" class="card text-decoration-none h-100">
+						<div class="card-body text-center py-2">
+							<div class="h5 mb-1">📝</div>
+							<div class="small">Tree Editor</div>
+						</div>
+					</a>
 				</div>
 			</div>
 		</div>
