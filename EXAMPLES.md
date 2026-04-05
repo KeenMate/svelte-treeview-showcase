@@ -127,3 +127,4 @@ Quick reference for all showcase examples with their section codes.
 | ST03 | Custom Themes | `api/styling/+page.svelte` |
 | ST04 | Responsive Design | `api/styling/+page.svelte` |
 | ST05 | Drag & Drop Styling | `api/styling/+page.svelte` |
+ 
